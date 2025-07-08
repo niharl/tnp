@@ -10,7 +10,7 @@ pip install -e .
 
 ## Running experiments.
 ```bash
-python experiments/lightning_train.py --config experiments/configs/models/tnp.yml --generator_config experiments/configs/generators/synthetic-1d.yml
+python experiments/lightning_train.py --config experiments/configs/models/tnp.yml experiments/configs/generators/synthetic-1d.yml
 ```
 
 ## Constructing models.

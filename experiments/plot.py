@@ -111,6 +111,9 @@ def plot(
                     xt=xt,
                     yt=yt,
                 )
+                gt_loglik = gt_loglik[
+                    :1
+                ]  # Need to do this because we cache during validation
                 gt_nll = -gt_loglik.sum() / batch.yt[..., 0].numel()
 
             # Plot ground truth

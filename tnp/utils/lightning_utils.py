@@ -99,7 +99,7 @@ class LitWrapper(pl.LightningModule):
         if len(self.val_batches) == 0:
             return
 
-        if self.plot_fn is not None and self.current_epoch % self.plot_interval == 0:
+        if self.plot_fn is not None and (self.current_epoch + 1) % self.plot_interval == 0:
             self.plot_fn(
                 self.model, self.val_batches, f"epoch-{self.current_epoch:04d}"
             )

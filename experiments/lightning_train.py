@@ -34,7 +34,7 @@ def main():
             else None
         ),
         persistent_workers=True if experiment.misc.num_workers > 0 else False,
-        pin_memory=True,
+        pin_memory=False,
     )
     val_loader = torch.utils.data.DataLoader(
         gen_train,
@@ -50,7 +50,7 @@ def main():
             else None
         ),
         persistent_workers=True if experiment.misc.num_val_workers > 0 else False,
-        pin_memory=True,
+        pin_memory=False,
     )
 
     def plot_fn(model, batches, name):

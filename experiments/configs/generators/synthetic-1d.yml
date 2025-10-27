@@ -16,7 +16,7 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 16_000
-    batch_size: 16
+    batch_size: 8
   val:
     _target_: tnp.data.gp.RandomScaleGPGenerator
     dim: ${params.dim_x}
@@ -34,7 +34,7 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
-    batch_size: 16
+    batch_size: 8
     deterministic: True
   test:
     _target_: tnp.data.gp.RandomScaleGPGenerator
@@ -53,7 +53,7 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
-    batch_size: 16
+    batch_size: 8
     deterministic: True
 
 rbf_kernel:

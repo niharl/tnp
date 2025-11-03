@@ -8,10 +8,10 @@ generator:
     - ${matern52_kernel}
     - ${periodic_kernel}
   noise_std: 0.1
-  min_nc: 1
-  max_nc: 64
-  min_nt: 128
-  max_nt: 128
+  min_nc: 1000
+  max_nc: 1000
+  min_nt: 0
+  max_nt: 0
   context_range: ${params.context_range}
   target_range: ${params.target_range}
   samples_per_epoch: 16_000

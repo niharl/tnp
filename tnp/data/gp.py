@@ -168,6 +168,7 @@ class GPGenerator(ABC):
         self.noise_std = noise_std
 
     def set_up_gp(self) -> GPGroundTruthPredictor:
+        """Pick a random kernel and set up GP predictor."""
         if isinstance(self.kernel, tuple):
             kernel = random.choice(self.kernel)
         else:
@@ -202,6 +203,7 @@ class RandomScaleGPGeneratorSameInputs(RandomScaleGPGenerator):
         nt: Optional[int] = None,
     ) -> torch.Tensor:
         x = super().sample_inputs(nc=nc, batch_shape=torch.Size(), nt=nt)
+        # copy the inputs b times
         x = einops.repeat(x, "n d -> b n d", b=batch_shape[0])
         return x
 

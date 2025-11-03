@@ -41,4 +41,4 @@ misc:
   num_plots: 10
   subplots: False
   savefig: False
-  logging: False
+  logging: True

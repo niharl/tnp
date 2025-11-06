@@ -14,8 +14,6 @@ def main():
     experiment = initialize_experiment()
     batch = experiment.generator.generate_batch()
     
-    import numpy as np
-
     # prepare dict from Batch dataclass instance `batch`
     batch_dict = {
         "x": batch.x.cpu(),  # keep as tensors
@@ -27,10 +25,17 @@ def main():
         "meta": {"seed": 42, "source": "generate_v1"},
     }
 
-    print(batch_dict['x'][0][:10])
-    print(batch_dict['y'][0][:10])
-
-    torch.save(batch_dict, "batch_0001.pt")
+    # If gt_pred exists and has kernel/likelihood
+    if batch.gt_pred is not None:
+        gt_pred = batch.gt_pred
+        batch_dict["gt_pred"] = {
+            "kernel_class": gt_pred.kernel.__class__.__name__,
+            "likelihood_class": gt_pred.likelihood.__class__.__name__,
+            "kernel_state": gt_pred.kernel.state_dict(),
+            "likelihood_state": gt_pred.likelihood.state_dict(),
+        }
+    
+    torch.save(batch_dict, "test batch.pt")
 
 
 if __name__ == "__main__":

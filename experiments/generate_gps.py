@@ -9,6 +9,7 @@ import wandb
 from tnp.utils.data_loading import adjust_num_batches
 from tnp.utils.experiment_utils import initialize_experiment
 from tnp.utils.lightning_utils import LitWrapper, LogPerformanceCallback
+from datetime import datetime
 
 def main():
     experiment = initialize_experiment()
@@ -35,7 +36,14 @@ def main():
             "likelihood_state": gt_pred.likelihood.state_dict(),
         }
     
-    torch.save(batch_dict, "test batch.pt")
+    save_dir = "./experiments/datasets"
+    os.makedirs(save_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"batch_{timestamp}.pt"
+    save_path = os.path.join(save_dir, filename)
+
+    torch.save(batch_dict, save_path)
 
 
 if __name__ == "__main__":

@@ -2,10 +2,10 @@ generator:
   _target_: tnp.data.gp.RandomScaleGPGenerator
   dim: ${params.dim_x}
   kernel:
-    #- ${rbf_kernel}
-    #- ${matern12_kernel}
-    #- ${matern32_kernel}
-    #- ${matern52_kernel}
+    - ${rbf_kernel}
+    - ${matern12_kernel}
+    - ${matern32_kernel}
+    - ${matern52_kernel}
     - ${periodic_kernel}
   noise_std: 0.1
   min_nc: 10

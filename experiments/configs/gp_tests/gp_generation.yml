@@ -8,14 +8,14 @@ generator:
     - ${matern52_kernel}
     - ${periodic_kernel}
   noise_std: 0.1
-  min_nc: 10
-  max_nc: 10
+  min_nc: 1000000
+  max_nc: 1000000
   min_nt: 0
   max_nt: 0
   context_range: ${params.context_range}
   target_range: ${params.target_range}
   samples_per_epoch: 16_000
-  batch_size: 2
+  batch_size: 8
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel

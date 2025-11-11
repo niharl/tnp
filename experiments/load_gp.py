@@ -5,11 +5,11 @@ from tnp.data.synthetic import SyntheticBatch
 import matplotlib.pyplot as plt
 import wandb
 import pandas as pd
+from datetime import datetime
 
 def main():
-    wandb.init(project="gp-loading-debug", name="gp_batch_scatter")
-
-
+    timestamp = datetime.now().strftime("%H:%M:%S %d/%m/&Y")
+    wandb.init(project="gp-loading-debug", name=timestamp)
     batch_dict = torch.load("/scratches/cartwright/nl442/tnp/experiments/datasets/batch_20251108_210002.pt")
 
     # reconstruct tensors
@@ -45,15 +45,12 @@ def main():
         gt_pred=gt_pred
     )
 
-    print('First 10 x:', batch.x[0, :10])
-    print('First 10 y:', batch.y[0, :10])
-    print('Kernel type:', batch.gt_pred.kernel)
-    print('Batch shape:', batch.x.shape)
-
     # Convert to dataframe for interactive wandb plotting
+    target_points = 1000
+    skip = max(1, batch.x.shape[1] // target_points)
     df = pd.DataFrame({
-        "x": batch.x[0].cpu().numpy().flatten(),
-        "y": batch.y[0].cpu().numpy().flatten()
+        "x": batch.x[0].cpu().numpy().flatten()[::skip],
+        "y": batch.y[0].cpu().numpy().flatten()[::skip]
     })
 
     # Create interactive scatter plot

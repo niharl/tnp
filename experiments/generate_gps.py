@@ -39,7 +39,7 @@ def main():
     save_dir = "./experiments/datasets"
     os.makedirs(save_dir, exist_ok=True)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%H%M%S_%d-%m-%Y")
     filename = f"batch_{timestamp}.pt"
     save_path = os.path.join(save_dir, filename)
 

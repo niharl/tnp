@@ -8,7 +8,7 @@ import torch
 
 from ..networks.gp import RandomHyperparameterKernel
 from .base import GroundTruthPredictor
-from .synthetic import SyntheticGeneratorUniformInput
+from .synthetic import SyntheticGeneratorUniformInput, SyntheticBatch
 
 
 class GPRegressionModel(gpytorch.models.ExactGP):
@@ -193,6 +193,58 @@ class GPGenerator(ABC):
 class RandomScaleGPGenerator(GPGenerator, SyntheticGeneratorUniformInput):
     pass
 
+class DeterministicContextGPGenerator(RandomScaleGPGenerator):
+    """
+    Generates batches of GP data while deterministically increasing
+    the number of context points (nc) by a fixed step.
+    """
+
+    def __init__(
+        self,
+        *,
+        min_nc: int,
+        max_nc: int,
+        nc_step: int,
+        min_nt: int,
+        max_nt: int,
+        nt_step: int,
+        batch_size: int,
+        **kwargs,
+    ):
+        super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
+                         max_nt = max_nt, batch_size=batch_size, **kwargs)
+        self.current_nc = min_nc
+        self.nc_step = nc_step
+        self.current_nt = min_nt
+        self.nt_step = nt_step
+
+    def generate_batch(self) -> SyntheticBatch:
+        """
+        Generates a batch with the current number of context points (nc)
+        and deterministically increments nc for the next batch.
+        """
+        nc = self.current_nc
+        nt = self.current_nt
+
+        # Sample batch using parent method
+        batch = self.sample_batch(
+            nc=nc,
+            nt=nt,
+            batch_shape=torch.Size([self.batch_size])
+        )
+
+        return batch
+
+    def increment_lengths(self):
+        if self.current_nc + self.nc_step <= self.max_nc:
+            self.current_nc += self.nc_step
+        if self.current_nt + self.nt_step <= self.max_nt:
+            self.current_nt += self.nt_step
+
+    def reset(self):
+        """Reset the context points counter to the minimum."""
+        self.current_nc = self.min_nc
+        self.current_nt = self.min_nt
 
 class RandomScaleGPGeneratorSameInputs(RandomScaleGPGenerator):
 

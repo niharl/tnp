@@ -8,7 +8,7 @@ from plot import plot
 import wandb
 from tnp.utils.data_loading import adjust_num_batches
 from tnp.utils.experiment_utils import initialize_experiment
-from tnp.utils.lightning_utils import LitWrapper, LogPerformanceCallback
+from tnp.utils.lightning_utils import LitWrapper, LogPerformanceCallback, DetailedTimingCallback
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
         pin_memory=False,
     )
     val_loader = torch.utils.data.DataLoader(
-        gen_train,
+        gen_val,
         batch_size=None,
         num_workers=experiment.misc.num_val_workers,
         worker_init_fn=(
@@ -84,6 +84,9 @@ def main():
             plot_interval=experiment.misc.plot_interval,
         )
 
+    # Initialise the combined timing/memory callback
+    metrics_callback = DetailedTimingCallback()
+
     if experiment.misc.logging:
         logger = pl.loggers.WandbLogger(
             project=experiment.misc.project,
@@ -96,11 +99,11 @@ def main():
             save_last=True,
         )
         performance_callback = LogPerformanceCallback()
-        callbacks = [checkpoint_callback, performance_callback]
+        callbacks = [checkpoint_callback, performance_callback, metrics_callback]
     else:
         logger = False
-        callbacks = None
-
+        callbacks = [metrics_callback]
+        
     trainer = pl.Trainer(
         logger=logger,
         max_epochs=epochs,

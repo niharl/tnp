@@ -1,0 +1,47 @@
+generators:
+  train:
+    _target_: tnp.data.noise.NoiseGenerator
+    dim: ${params.dim_x}
+    min_nc: ${params.nc_val}
+    max_nc: ${params.nc_val}
+    min_nt: ${params.nt_val}
+    max_nt: ${params.nt_val}
+    samples_per_epoch: 16_000
+    batch_size: 16
+  val:
+    _target_: tnp.data.noise.NoiseGenerator
+    dim: ${params.dim_x}
+    min_nc: ${params.nt_val}
+    max_nc: ${params.nt_val}
+    min_nt: ${params.nt_val}
+    max_nt: ${params.nt_val}
+    samples_per_epoch: 4096
+    batch_size: 16
+    deterministic: True
+  test:
+    _target_: tnp.data.noise.NoiseGenerator
+    dim: ${params.dim_x}
+    min_nc: ${params.nt_val}
+    max_nc: ${params.nt_val}
+    min_nt: ${params.nt_val}
+    max_nt: ${params.nt_val}
+    samples_per_epoch: 4096
+    batch_size: 16
+    deterministic: True
+
+misc:
+  project: noise
+  eval_name: test_1000
+  seed: 1
+  only_plots: False
+  num_plots: 10
+  subplots: False
+  savefig: False
+  logging: True
+
+
+params:
+  dim_x: 1
+  dim_y: 1
+  nc_val: 1000
+  nt_val: 10

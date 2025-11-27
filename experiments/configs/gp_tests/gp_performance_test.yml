@@ -8,9 +8,9 @@ generator:
     #- ${matern52_kernel}
     #- ${periodic_kernel}
   noise_std: 0.1
-  min_nc: 2000000
-  max_nc: 2000000
-  nc_step: 4500
+  min_nc: 500
+  max_nc: 20_000
+  nc_step: 500
   min_nt: 0
   max_nt: 0
   nt_step: 0

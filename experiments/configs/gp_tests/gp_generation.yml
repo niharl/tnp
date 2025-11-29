@@ -8,8 +8,8 @@ generator:
     - ${matern52_kernel}
     - ${periodic_kernel}
   noise_std: 0.1
-  min_nc: 1000000
-  max_nc: 1000000
+  min_nc: 100000
+  max_nc: 100000
   min_nt: 0
   max_nt: 0
   context_range: ${params.context_range}

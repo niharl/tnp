@@ -45,6 +45,10 @@ def main():
         runtimes.append(runtime)
         memories.append(max_memory)
 
+        # Print to terminal
+        print('Current nc:', generator.current_nc,
+              '\n| Runtime (s):', f'{runtime:.4f}',)
+
         generator.increment_lengths()
 
     df_time = pd.DataFrame({

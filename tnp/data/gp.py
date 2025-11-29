@@ -322,6 +322,10 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             + self.context_range[:, 0]
         )
 
+        # Randomly flip the inputs around zero to add variety
+        if torch.rand(()) < 0.5:
+            xc = 2 * self.reversal_point - xc
+
         # Concatenate context and target inputs
         return xc
 

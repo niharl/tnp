@@ -33,7 +33,7 @@ def plot(
     pred_fn: Callable = np_pred_fn,
 ):
     steps = int(points_per_dim * (x_range[1] - x_range[0]))
-
+    print('Running the plotting code now...')
     x_plot = torch.linspace(x_range[0], x_range[1], steps).to(batches[0].xc)[
         None, :, None
     ]

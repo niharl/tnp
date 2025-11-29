@@ -294,6 +294,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
 
         # Create target inputs by reversing context inputs around reversal_point
         xt = 2 * self.reversal_point - xc
+        xt = xt.flip(dims=[-2])
         yt = yc.flip(dims=[-2])
 
         x = torch.concat([xc, xt], axis=1)
@@ -306,7 +307,6 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             yc=yc,
             xt=xt,
             yt=yt,
-            gt_pred=gt_pred
         )
     
     def sample_inputs(

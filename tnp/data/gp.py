@@ -246,6 +246,86 @@ class DeterministicContextGPGenerator(RandomScaleGPGenerator):
         self.current_nc = self.min_nc
         self.current_nt = self.min_nt
 
+class ReversedContextGPGenerator(RandomScaleGPGenerator):
+    """
+    Generates batches of GP data where the GP is reversed at a reversal_point
+    and the context points have direct counterparts in the target points.
+    """
+
+    def __init__(
+        self,
+        *,
+        min_nc: int,
+        max_nc: int,
+        min_nt: int,
+        max_nt: int,
+        batch_size: int,
+        reversal_point: float = 0.0,
+        **kwargs,
+    ):
+        super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
+                         max_nt = max_nt, batch_size=batch_size, **kwargs)
+        self.reversal_point = reversal_point
+
+    def generate_batch(self) -> SyntheticBatch:
+        # Sample number of context = number of target points.
+        nc = torch.randint(low=self.min_nc, high=self.max_nc + 1, size=())
+        nt = nc
+
+        # Sample batch using parent method
+        batch = self.sample_batch(
+            nc=nc,
+            nt=nt,
+            batch_shape=torch.Size([self.batch_size])
+        )
+
+        return batch
+    
+
+    def sample_batch(
+        self,
+        nc: int,
+        nt: int,
+        batch_shape: torch.Size,
+    ) -> SyntheticBatch:
+        # Sample context inputs
+        xc = self.sample_inputs(nc=nc, batch_shape=batch_shape)
+        yc, gt_pred = self.sample_outputs(x=xc)
+
+        # Create target inputs by reversing context inputs around reversal_point
+        xt = 2 * self.reversal_point - xc
+        yt = yc.flip(dims=[-2])
+
+        x = torch.concat([xc, xt], axis=1)
+        y = torch.concat([yc, yt], axis=1)
+
+        return SyntheticBatch(
+            x=x,
+            y=y,
+            xc=xc,
+            yc=yc,
+            xt=xt,
+            yt=yt,
+            gt_pred=gt_pred
+        )
+    
+    def sample_inputs(
+        self,
+        nc: int,
+        batch_shape: torch.Size,
+    ) -> torch.Tensor:
+
+        # Sample context inputs
+        xc = (
+            torch.rand((*batch_shape, nc, self.dim))
+            * (self.context_range[:, 1] - self.context_range[:, 0])
+            + self.context_range[:, 0]
+        )
+
+        # Concatenate context and target inputs
+        return xc
+
+
 class RandomScaleGPGeneratorSameInputs(RandomScaleGPGenerator):
 
     def sample_inputs(

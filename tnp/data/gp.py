@@ -336,6 +336,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         nt: int,
         batch_shape: torch.Size,
     ) -> SyntheticBatch:
+        
         # Randomly flip the context range around the reversal point
         if torch.rand(1) > 0.5:
             current_range = 2 * self.reversal_point - self.context_range

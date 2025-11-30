@@ -148,6 +148,49 @@ class GPGroundTruthPredictor(GroundTruthPredictor):
             return y[..., None]
 
 
+class ReversedGPGroundTruthPredictor(GPGroundTruthPredictor):
+    def __init__(self, reversal_point: float, context_range: torch.Tensor, **kwargs):
+        super().__init__(**kwargs)
+        self.reversal_point = reversal_point
+        self.context_range = context_range
+        self.min_context = context_range[:, 0]
+        self.max_context = context_range[:, 1]
+    
+    def __call__(
+        self,
+        xc: torch.Tensor,
+        yc: torch.Tensor,
+        xt: torch.Tensor,
+        yt: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
+
+        # Ensure boundary tensors are on the same device as inputs
+        min_c = self.min_context.to(xc.device)
+        max_c = self.max_context.to(xc.device)
+
+        def transform_inputs(x):
+            # Create a boolean mask: True where elements are inside the original context range
+            # Broadcasting handles shape (Batch, N, Dim) vs (Dim,)
+            is_in_range = (x >= min_c) & (x <= max_c)
+            
+            # Calculate the reflection for ALL points: x' = 2 * r - x
+            x_reflected = 2 * self.reversal_point - x
+            
+            # Select element-wise and flip inputs outside of context range
+            return torch.where(is_in_range, x, x_reflected)
+        
+        # Apply transformation to both context and target inputs
+        xc_transformed = transform_inputs(xc)
+        xt_transformed = transform_inputs(xt)
+
+        # Call the parent GPGroundTruthPredictor with the transformed inputs.
+        return super().__call__(xc_transformed, yc, xt_transformed, yt)
+
+    def sample_outputs(
+        self, x: torch.Tensor, sample_shape: torch.Size = torch.Size()
+    ) -> torch.Tensor:
+        pass
+
 class GPGenerator(ABC):
     def __init__(
         self,
@@ -290,7 +333,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
     ) -> SyntheticBatch:
         # Sample context inputs
         xc = self.sample_inputs(nc=nc, batch_shape=batch_shape)
-        yc, gt_pred = self.sample_outputs(x=xc)
+        yc, interim_gt_pred = self.sample_outputs(x=xc)
 
         # Create target inputs by reversing context inputs around reversal_point
         xt = 2 * self.reversal_point - xc
@@ -299,6 +342,13 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
 
         x = torch.concat([xc, xt], axis=1)
         y = torch.concat([yc, yt], axis=1)
+
+        gt_pred = ReversedGPGroundTruthPredictor(
+            reversal_point=self.reversal_point,
+            context_range=self.context_range,
+            kernel=interim_gt_pred.kernel,
+            likelihood=interim_gt_pred.likelihood,
+        )
 
         return SyntheticBatch(
             x=x,
@@ -322,9 +372,6 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             + self.context_range[:, 0]
         )
 
-        # Randomly flip the inputs around zero to add variety
-        if torch.rand(()) < 0.5:
-            xc = 2 * self.reversal_point - xc
 
         # Concatenate context and target inputs
         return xc

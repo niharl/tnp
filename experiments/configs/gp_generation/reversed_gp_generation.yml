@@ -1,0 +1,81 @@
+generator:
+  _target_: tnp.data.gp.ReversedContextGPGenerator
+  dim: ${params.dim_x}
+  kernel:
+    - ${rbf_kernel}
+    - ${matern12_kernel}
+    - ${matern32_kernel}
+    - ${matern52_kernel}
+    - ${periodic_kernel}
+  noise_std: 0.1
+  min_nc: 10_000
+  max_nc: 10_000
+  min_nt: 10_000
+  max_nt: 10_000
+  context_range: ${params.context_range}
+  target_range: ${params.target_range}
+  samples_per_epoch: 16_000
+  batch_size: 8
+
+rbf_kernel:
+  _target_: tnp.networks.gp.RBFKernel
+  _partial_: True
+  ard_num_dims: ${params.dim_x}
+  min_log10_lengthscale: ${params.min_log10_lengthscale}
+  max_log10_lengthscale: ${params.max_log10_lengthscale}
+
+matern12_kernel:
+  _target_: tnp.networks.gp.MaternKernel
+  _partial_: True
+  nu: 0.5
+  ard_num_dims: ${params.dim_x}
+  min_log10_lengthscale: ${params.min_log10_lengthscale}
+  max_log10_lengthscale: ${params.max_log10_lengthscale}
+
+matern32_kernel:
+  _target_: tnp.networks.gp.MaternKernel
+  _partial_: True
+  nu: 1.5
+  ard_num_dims: ${params.dim_x}
+  min_log10_lengthscale: ${params.min_log10_lengthscale}
+  max_log10_lengthscale: ${params.max_log10_lengthscale}
+
+matern52_kernel:
+  _target_: tnp.networks.gp.MaternKernel
+  _partial_: True
+  nu: 2.5
+  ard_num_dims: ${params.dim_x}
+  min_log10_lengthscale: ${params.min_log10_lengthscale}
+  max_log10_lengthscale: ${params.max_log10_lengthscale}
+
+periodic_kernel:
+  _target_: tnp.networks.gp.PeriodicKernel
+  _partial_: True
+  ard_num_dims: ${params.dim_x}
+  min_log10_lengthscale: ${params.min_log10_lengthscale}
+  max_log10_lengthscale: ${params.max_log10_lengthscale}
+  min_log10_period: ${params.min_log10_period}
+  max_log10_period: ${params.max_log10_period}
+
+
+params:
+  dim_x: 1
+  dim_y: 1
+  context_range: [[-4.0, 0.0]]
+  target_range: [[0.0, 4.0]]
+  min_log10_lengthscale: -0.602
+  max_log10_lengthscale: -0.602
+  min_log10_period: 0.301
+  max_log10_period: 0.301
+  total_batches: 10
+
+
+misc:
+  project: bulk_reversed_gp_generation
+  seed: 1
+  num_plots: 10
+  subplots: False
+  savefig: False
+  logging: False
+  plot_interval: 10
+  check_val_every_n_epoch: 10

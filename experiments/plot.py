@@ -168,3 +168,84 @@ def plot(
             plt.show()
 
         plt.close()
+
+def plot_gps(
+        batches: List[Batch],
+        num_fig: int = 5,
+        figsize: Tuple[float, float] = (8.0, 6.0),
+        x_range: Tuple[float, float] = (-4.0, 4.0),
+        y_lim: Tuple[float, float] = (-3.0, 3.0),
+        max_visible_points: int = 1000,
+        name: str = "plot",
+        savefig: bool = False,
+        logging: bool = True,
+        ):
+    
+    print('Running the plotting code now...')
+    
+    
+    for i in range(num_fig):
+        
+        batch = batches[i]
+        xc = batch.xc[:1]
+        yc = batch.yc[:1]
+        xt = batch.xt[:1]
+        yt = batch.yt[:1]
+
+        batch.xc = xc
+        batch.yc = yc
+        batch.xt = xt
+        batch.yt = yt
+
+        # Calculate step size to limit the number of plotted points
+        nc = xc.shape[1]
+        nt = xt.shape[1]
+        step_c = max(1, nc // max_visible_points)
+        step_t = max(1, nt // max_visible_points)
+
+        # Make figure for plotting
+        fig = plt.figure(figsize=figsize)
+
+        # Plot context and target points
+        plt.scatter(
+            xc[0, ::step_c, 0].cpu(),
+            yc[0, ::step_c, 0].cpu(),
+            c="k",
+            label="Context",
+            s=30,
+        )
+
+        plt.scatter(
+            xt[0, ::step_t, 0].cpu(),
+            yt[0, ::step_t, 0].cpu(),
+            c="r",
+            label="Target",
+            s=30,
+        )
+
+        title_str = f"$N = {xc.shape[1]}$"
+
+        plt.title(title_str, fontsize=24)
+        plt.grid()
+
+        # Set axis limits
+        plt.xlim(x_range)
+        plt.ylim(y_lim)
+
+        plt.xticks(fontsize=24)
+        plt.yticks(fontsize=24)
+
+        plt.legend(loc="upper right", fontsize=20)
+        plt.tight_layout()
+
+        fname = f"fig/{name}/{i:03d}"
+        if wandb.run is not None and logging:
+            wandb.log({fname: wandb.Image(fig)})
+        elif savefig:
+            if not os.path.isdir(f"fig/{name}"):
+                os.makedirs(f"fig/{name}")
+            plt.savefig(fname, bbox_inches="tight")
+        else:
+            plt.show()
+
+        plt.close()

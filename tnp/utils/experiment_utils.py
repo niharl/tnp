@@ -194,7 +194,7 @@ def initialize_evaluation() -> DictConfig:
     artifact_dir = artifact.download()
     ckpt_file = os.path.join(artifact_dir, "model.ckpt")
 
-    ckpt = torch.load(ckpt_file, map_location="cpu")
+    ckpt = torch.load(ckpt_file, map_location="cpu", weights_only=False)
     print(f"Checkpoint epochs: {ckpt['epoch']}")
 
     # Load in the checkpoint.

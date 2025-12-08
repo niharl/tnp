@@ -173,6 +173,7 @@ class ReversedGPGroundTruthPredictor(GroundTruthPredictor):
         # Ensure boundary tensors are on the same device as inputs
         min_c = self.min_context.to(xc.device)
         max_c = self.max_context.to(xc.device)
+        reversal_point = self.reversal_point.to(xc.device)
 
         def transform_inputs(x):
             # Create a boolean mask: True where elements are inside the original context range
@@ -180,7 +181,7 @@ class ReversedGPGroundTruthPredictor(GroundTruthPredictor):
             is_in_range = (x >= min_c) & (x <= max_c)
             
             # Calculate the reflection for ALL points: x' = 2 * r - x
-            x_reflected = 2 * self.reversal_point - x
+            x_reflected = 2 * reversal_point - x
             
             # Select element-wise and flip inputs outside of context range
             return torch.where(is_in_range, x, x_reflected)
@@ -343,6 +344,104 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             current_range = current_range.flip(dims=[1])
         else:
             current_range = self.context_range
+
+        # Sample context inputs
+        xc = self.sample_inputs(
+            nc=nc,
+            context_range=current_range,
+            batch_shape=batch_shape)
+        yc, non_reversed_gt_pred = self.sample_outputs(x=xc)
+
+        # Create target inputs by reversing context inputs around reversal_point
+        xt = 2 * self.reversal_point - xc
+        xt = xt.flip(dims=[-2])
+        yt = yc.flip(dims=[-2])
+
+        x = torch.concat([xc, xt], axis=1)
+        y = torch.concat([yc, yt], axis=1)
+
+        reversed_gt_pred = ReversedGPGroundTruthPredictor(
+            base_gt_pred=non_reversed_gt_pred,
+            reversal_point=self.reversal_point,
+            context_range=current_range
+        )
+
+        return SyntheticBatch(
+            x=x,
+            y=y,
+            xc=xc,
+            yc=yc,
+            xt=xt,
+            yt=yt,
+            gt_pred=reversed_gt_pred,
+        )
+    
+    def sample_inputs(
+        self,
+        nc: int,
+        context_range: torch.Tensor,
+        batch_shape: torch.Size,
+    ) -> torch.Tensor:
+
+        # Sample context inputs
+        xc = (
+            torch.rand((*batch_shape, nc, self.dim))
+            * (context_range[:, 1] - context_range[:, 0])
+            + context_range[:, 0]
+        )
+
+        return xc
+    
+class RandomReversalGPGenerator(RandomScaleGPGenerator):
+    """
+    Generates batches of GP data with randomised reversal point, and 
+    randomised size of the context range
+    """
+
+    def __init__(
+        self,
+        *,
+        min_nc: int,
+        max_nc: int,
+        min_nt: int,
+        max_nt: int,
+        batch_size: int,
+        reversal_range: Tuple[float, float],
+        **kwargs,
+    ):
+        super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
+                         max_nt = max_nt, batch_size=batch_size, **kwargs)
+        self.reversal_range = reversal_range
+
+    def generate_batch(self) -> SyntheticBatch:
+        # Sample number of context = number of target points.
+        nc = torch.randint(low=self.min_nc, high=self.max_nc + 1, size=())
+        nt = nc
+
+        batch = self.sample_batch(
+            nc=nc,
+            nt=nt,
+            batch_shape=torch.Size([self.batch_size])
+        )
+
+        return batch
+    
+    def sample_batch(
+        self,
+        nc: int,
+        nt: int,
+        batch_shape: torch.Size,
+    ) -> SyntheticBatch:
+        # Sample random reversal point within specified range
+        self.reversal_point = torch.rand(1) * (self.reversal_range[1] - self.reversal_range[0]) + self.reversal_range[0]
+
+        # V1 flipping implementation
+        # If flipping point is < 0, context range is positive, else negative
+        current_range = self.context_range.clone()
+        if self.reversal_point < 0.0:
+            current_range[:, 0] = self.reversal_point
+        else:
+            current_range[:, 1] = self.reversal_point
 
         # Sample context inputs
         xc = self.sample_inputs(

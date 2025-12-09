@@ -64,7 +64,7 @@ def main():
     # --- Configuration ---
     # Total batches to generate (e.g., 1,000,000)
     # You can add this to your yaml under params, or hardcode it here
-    total_batches = getattr(experiment.params, "total_batches", 1000)
+    total_batches = experiment.params.total_batches
     
     # How many batches to store in a single .pt file (e.g., 1000)
     chunk_size = 1000 
@@ -97,6 +97,7 @@ def main():
     print(f"Generating {total_batches} batches using {num_workers} workers...")
     print(f"Saving in chunks of {chunk_size} to {save_dir}")
 
+    current_batches = []
     current_chunk = []
     chunk_count = 0
     iterator = iter(loader)
@@ -113,6 +114,7 @@ def main():
         # Serialize
         batch_data = serialize_batch(batch, batch_idx=i, seed=experiment.misc.seed)
         current_chunk.append(batch_data)
+        current_batches.append(batch)
 
         # Save Chunk
         if len(current_chunk) >= chunk_size:
@@ -124,8 +126,13 @@ def main():
             
             torch.save(current_chunk, save_path)
             
+            plot_gps(current_batches)
+
             current_chunk = [] # Reset buffer
+            current_batches = []
             chunk_count += 1
+
+    plot_gps(current_batches)
 
     # Save any remaining batches
     if len(current_chunk) > 0:
@@ -135,14 +142,6 @@ def main():
         torch.save(current_chunk, os.path.join(save_dir, filename))
 
     print("Generation complete.")
-
-    # Optional: Plot a few examples from the last chunk to verify
-    if len(current_chunk) > 0:
-        # We need to convert the dicts back to Batch objects just for plotting
-        # (This assumes you have a way to reconstruct them or plot_gps accepts dicts)
-        # For simplicity, we just won't plot in the bulk script, or you can
-        # reuse the 'batch' variable from the loop which is still a Batch object.
-        pass
 
 if __name__ == "__main__":
     torch.set_float32_matmul_precision("high")

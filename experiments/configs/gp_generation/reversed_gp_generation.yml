@@ -8,10 +8,10 @@ generator:
     - ${matern52_kernel}
     - ${periodic_kernel}
   noise_std: 0.1
-  min_nc: 10_000
-  max_nc: 10_000
-  min_nt: 10_000
-  max_nt: 10_000
+  min_nc: 100
+  max_nc: 100
+  min_nt: 100
+  max_nt: 100
   context_range: ${params.context_range}
   target_range: ${params.target_range}
   samples_per_epoch: 16_000
@@ -76,6 +76,6 @@ misc:
   num_plots: 10
   subplots: False
   savefig: False
-  logging: False
+  logging: True
   plot_interval: 10
   check_val_every_n_epoch: 10

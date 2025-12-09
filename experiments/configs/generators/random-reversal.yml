@@ -9,13 +9,14 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
+    min_nc: 32
     max_nc: 64
     min_nt: 128
     max_nt: 128
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
+    priming_frac: ${params.priming_frac}
     samples_per_epoch: 16_000
     batch_size: 8
   val:
@@ -28,13 +29,14 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
+    min_nc: 32
     max_nc: 64
     min_nt: 128
     max_nt: 128
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
+    priming_frac: ${params.priming_frac}
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
@@ -55,6 +57,7 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
+    priming_frac: ${params.priming_frac}
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
@@ -103,14 +106,14 @@ periodic_kernel:
 params:
   dim_x: 1
   dim_y: 1
-  context_range: [[-5.0, 5.0]]
-  target_range: [[-5.0, 5.0]]
-  reversal_range: [0.0, 2.0]
+  context_range: [[-4.0, 4.0]]
+  target_range: [[-4.0, 4.0]]
+  reversal_range: [-1.0, 0.0]
+  priming_frac : 0.2
   min_log10_lengthscale: -0.602
   max_log10_lengthscale: -0.602
   min_log10_period: 0.301
   max_log10_period: 0.301
-
 
 misc:
   project: random-gp-reversal-tests

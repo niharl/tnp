@@ -173,7 +173,7 @@ class ReversedGPGroundTruthPredictor(GroundTruthPredictor):
         # Ensure boundary tensors are on the same device as inputs
         min_c = self.min_context.to(xc.device)
         max_c = self.max_context.to(xc.device)
-        reversal_point = self.reversal_point.to(xc.device)
+        reversal_point = self.reversal_point
 
         def transform_inputs(x):
             # Create a boolean mask: True where elements are inside the original context range
@@ -435,7 +435,7 @@ class RandomReversalGPGenerator(RandomScaleGPGenerator):
         batch_shape: torch.Size,
     ) -> SyntheticBatch:
         # Sample random reversal point within specified range
-        self.reversal_point = torch.rand(1) * (self.reversal_range[1] - self.reversal_range[0]) + self.reversal_range[0]
+        self.reversal_point = float(torch.rand(1)) * (self.reversal_range[1] - self.reversal_range[0]) + self.reversal_range[0]
 
         # for now, the context range is clipped at the reversal point
         current_range = self.context_range.clone()

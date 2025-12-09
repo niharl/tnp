@@ -79,7 +79,7 @@ def main():
             name=f'Gen_N={total_batches}_{timestamp}'
         )
 
-    save_dir = "./experiments/datasets"
+    save_dir = f"./experiments/datasets/{timestamp}"
     os.makedirs(save_dir, exist_ok=True)
 
     # Override generator limits to ensure it doesn't stop early
@@ -121,7 +121,7 @@ def main():
             start_idx = chunk_count * chunk_size
             end_idx = start_idx + len(current_chunk)
             
-            filename = f"batches_{timestamp}_{start_idx:07d}_to_{end_idx:07d}.pt"
+            filename = f"batches_{start_idx:07d}_to_{end_idx:07d}.pt"
             save_path = os.path.join(save_dir, filename)
             
             torch.save(current_chunk, save_path)
@@ -138,7 +138,7 @@ def main():
     if len(current_chunk) > 0:
         start_idx = chunk_count * chunk_size
         end_idx = start_idx + len(current_chunk)
-        filename = f"batches_{timestamp}_{start_idx:07d}_to_{end_idx:07d}.pt"
+        filename = f"batches_{start_idx:07d}_to_{end_idx:07d}.pt"
         torch.save(current_chunk, os.path.join(save_dir, filename))
 
     print("Generation complete.")

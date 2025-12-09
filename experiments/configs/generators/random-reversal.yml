@@ -111,7 +111,7 @@ params:
   reversal_range: [-1.0, 0.0]
   priming_frac : 0.2
   min_log10_lengthscale: -0.602
-  max_log10_lengthscale: -0.602
+  max_log10_lengthscale: 0
   min_log10_period: 0.301
   max_log10_period: 0.301
 

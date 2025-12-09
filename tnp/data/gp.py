@@ -407,11 +407,13 @@ class RandomReversalGPGenerator(RandomScaleGPGenerator):
         max_nt: int,
         batch_size: int,
         reversal_range: Tuple[float, float],
+        priming_frac: int,
         **kwargs,
     ):
         super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
                          max_nt = max_nt, batch_size=batch_size, **kwargs)
         self.reversal_range = reversal_range
+        self.priming_frac = priming_frac
 
     def generate_batch(self) -> SyntheticBatch:
         # Sample number of context = number of target points.
@@ -435,29 +437,43 @@ class RandomReversalGPGenerator(RandomScaleGPGenerator):
         # Sample random reversal point within specified range
         self.reversal_point = torch.rand(1) * (self.reversal_range[1] - self.reversal_range[0]) + self.reversal_range[0]
 
-        # V1 flipping implementation
-        # If flipping point is < 0, context range is positive, else negative
+        # for now, the context range is clipped at the reversal point
         current_range = self.context_range.clone()
-        if self.reversal_point < 0.0:
-            current_range[:, 0] = self.reversal_point
-        else:
-            current_range[:, 1] = self.reversal_point
+        current_range[:, 1] = self.reversal_point
 
-        # Sample context inputs
-        xc = self.sample_inputs(
+        # Sample non_flipped inputs
+        x_base = self.sample_inputs(
             nc=nc,
             context_range=current_range,
             batch_shape=batch_shape)
-        yc, non_reversed_gt_pred = self.sample_outputs(x=xc)
+        x_base, _ = torch.sort(x_base, dim = -2)
+        y_base, non_reversed_gt_pred = self.sample_outputs(x=x_base)
 
         # Create target inputs by reversing context inputs around reversal_point
-        xt = 2 * self.reversal_point - xc
-        xt = xt.flip(dims=[-2])
-        yt = yc.flip(dims=[-2])
+        x_flipped = 2 * self.reversal_point - x_base
+        x_flipped = x_flipped.flip(dims=[-2])
+        y_flipped = y_base.flip(dims=[-2])
 
-        x = torch.concat([xc, xt], axis=1)
-        y = torch.concat([yc, yt], axis=1)
+        # Create full inputs and outputs by concatenation
+        x = torch.concat([x_base, x_flipped], axis=1)
+        y = torch.concat([y_base, y_flipped], axis=1)
 
+        # Split into context and target sets
+        n_priming = int(self.priming_frac * nc)
+        if torch.rand(1) > 0.5:
+            xc = x[:, :nc+n_priming, :]
+            yc = y[:, :nc+n_priming, :]
+            xt = x[:, nc+n_priming:, :]
+            yt = y[:, nc+n_priming:, :]
+
+        else:
+            xc = x[:, nc-n_priming:, :]
+            yc = y[:, nc-n_priming:, :]
+            xt = x[:, :nc-n_priming, :]
+            yt = y[:, :nc-n_priming, :]
+
+
+        # Create the reversed GP predictor
         reversed_gt_pred = ReversedGPGroundTruthPredictor(
             base_gt_pred=non_reversed_gt_pred,
             reversal_point=self.reversal_point,

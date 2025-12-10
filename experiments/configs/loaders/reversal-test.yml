@@ -6,6 +6,10 @@ val_params:
   samples_per_epoch: 16_000
   batch_size: 8
 
+params:
+  dim_x: 1
+  dim_y: 1
+
 misc:
   project: test-loading-pregenerated-gps
   gp_folder: experiments/datasets/reversed_gp_generation_10_Dec
@@ -14,7 +18,7 @@ misc:
   only_plots: True
   num_plots: 10
   subplots: True
-  savefig: True
+  savefig: False
   logging: True
   plot_interval: 1
   check_val_every_n_epoch: 1

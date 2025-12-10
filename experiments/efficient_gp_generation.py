@@ -71,15 +71,17 @@ def main():
     
     # Number of CPU workers for parallel generation
     num_workers = 4 
-    # ---------------------
+
+    # Name of folder in which batches are to be saved
+    save_folder = experiment.misc.folder
 
     if experiment.misc.logging:
         wandb.init(
             project=experiment.misc.project, 
-            name=f'Gen_N={total_batches}_{timestamp}'
+            name=f'{save_folder}_{timestamp}'
         )
 
-    save_dir = f"./experiments/datasets/{timestamp}"
+    save_dir = f"./experiments/datasets/{save_folder}"
     os.makedirs(save_dir, exist_ok=True)
 
     # Override generator limits to ensure it doesn't stop early
@@ -102,6 +104,11 @@ def main():
     chunk_count = 0
     iterator = iter(loader)
 
+    chunk_size = experiment.params.chunk_size
+    plot_freq = experiment.misc.plot_every_n_chunks
+
+    plots_per_batch = min(experiment.misc.num_lots, experiment.generator.batch_size)
+
     # We use a manual loop to control the total count strictly
     for i in tqdm(range(total_batches)):
         try:
@@ -121,24 +128,27 @@ def main():
             start_idx = chunk_count * chunk_size
             end_idx = start_idx + len(current_chunk)
             
-            filename = f"batches_{start_idx:07d}_to_{end_idx:07d}.pt"
+            filename = f"batches_{start_idx}_to_{end_idx}.pt"
             save_path = os.path.join(save_dir, filename)
             
             torch.save(current_chunk, save_path)
             
-            plot_gps(current_batches)
+            if chunk_count % plot_freq == 0:
+                plot_gps(
+                    current_batches,
+                    name=f"Batches {start_idx} to {start_idx + experiment.misc.num_plots}",
+                    num_fig=plots_per_batch
+                    )
 
             current_chunk = [] # Reset buffer
             current_batches = []
             chunk_count += 1
 
-    plot_gps(current_batches)
-
     # Save any remaining batches
     if len(current_chunk) > 0:
         start_idx = chunk_count * chunk_size
         end_idx = start_idx + len(current_chunk)
-        filename = f"batches_{start_idx:07d}_to_{end_idx:07d}.pt"
+        filename = f"batches_{start_idx}_to_{end_idx}.pt"
         torch.save(current_chunk, os.path.join(save_dir, filename))
 
     print("Generation complete.")

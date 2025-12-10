@@ -72,14 +72,16 @@ params:
   min_log10_period: 0.301
   max_log10_period: 0.301
   total_batches: 10
+  chunk_size: 1000
 
 
 misc:
   project: bulk_reversed_gp_generation
+  folder: bulk_reversed_gp_generation
   seed: 1
   num_plots: 10
   subplots: False
   savefig: False
   logging: True
-  plot_interval: 10
+  plot_every_n_chunks: 10
   check_val_every_n_epoch: 10

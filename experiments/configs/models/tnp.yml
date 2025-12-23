@@ -58,7 +58,7 @@ optimiser:
   lr: 5.0e-4
 
 params:
-  epochs: 2
+  epochs: 200
   embed_dim: 128
   num_heads: 8
   head_dim: 16
@@ -67,7 +67,7 @@ params:
 
 
 misc:
-  name: TNP-context length 50 - 100, 500 epochs
+  name: TNP-context length 50 - 100, 200 epochs
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

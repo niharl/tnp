@@ -9,10 +9,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
-    max_nc: 64
-    min_nt: 128
-    max_nt: 128
+    min_nc: 50
+    max_nc: 100
+    min_nt: 50
+    max_nt: 100
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 16_000
@@ -27,10 +27,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
-    max_nc: 64
-    min_nt: 128
-    max_nt: 128
+    min_nc: 50
+    max_nc: 100
+    min_nt: 50
+    max_nt: 100
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
@@ -46,10 +46,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
-    max_nc: 64
-    min_nt: 128
-    max_nt: 128
+    min_nc: 50
+    max_nc: 100
+    min_nt: 50
+    max_nt: 100
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096

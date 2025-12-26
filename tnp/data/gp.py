@@ -311,16 +311,24 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         max_nt: int,
         batch_size: int,
         reversal_point: float = 0.0,
+        same_targets: bool = True, # whether target points are same as context points reversed
+        shared_noise: bool = True, # whether the noise is also shared between context and target
         **kwargs,
     ):
         super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
                          max_nt = max_nt, batch_size=batch_size, **kwargs)
         self.reversal_point = reversal_point
+        self.same_targets = same_targets
+        self.shared_noise = shared_noise
 
     def generate_batch(self) -> SyntheticBatch:
         # Sample number of context = number of target points.
         nc = torch.randint(low=self.min_nc, high=self.max_nc + 1, size=())
-        nt = nc
+
+        if self.same_targets:
+            nt = nc
+        else:
+            nt = torch.randint(low=self.min_nt, high=self.max_nt + 1, size=())
 
         # Sample batch using parent method
         batch = self.sample_batch(
@@ -347,18 +355,10 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
 
         # Sample context inputs
         xc = self.sample_inputs(
-            nc=nc,
+            n=nc,
             context_range=current_range,
             batch_shape=batch_shape)
         yc, non_reversed_gt_pred = self.sample_outputs(x=xc)
-
-        # Create target inputs by reversing context inputs around reversal_point
-        xt = 2 * self.reversal_point - xc
-        xt = xt.flip(dims=[-2])
-        yt = yc.flip(dims=[-2])
-
-        x = torch.concat([xc, xt], axis=1)
-        y = torch.concat([yc, yt], axis=1)
 
         reversed_gt_pred = ReversedGPGroundTruthPredictor(
             base_gt_pred=non_reversed_gt_pred,
@@ -366,6 +366,28 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             context_range=current_range
         )
 
+        if self.same_targets and self.shared_noise:
+            # Create target inputs by reversing context inputs around reversal_point
+            xt = 2 * self.reversal_point - xc
+            yt = yc
+
+        elif self.same_targets and not self.shared_noise:
+            yt, _ = non_reversed_gt_pred.sample_outputs(x=xc)
+            xt = 2 * self.reversal_point - xc
+
+        else:
+            # Sample context inputs
+            xt_reversed = self.sample_inputs(
+                n=nt,
+                context_range=current_range,
+                batch_shape=batch_shape)
+            yt, _ = non_reversed_gt_pred.sample_outputs(x=xt_reversed)
+            # Create target inputs by reversing context inputs around reversal_point
+            xt = 2 * self.reversal_point - xt_reversed
+
+        x = torch.concat([xc, xt], axis=1)
+        y = torch.concat([yc, yt], axis=1)
+        
         return SyntheticBatch(
             x=x,
             y=y,
@@ -378,14 +400,14 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
     
     def sample_inputs(
         self,
-        nc: int,
+        n: int,
         context_range: torch.Tensor,
         batch_shape: torch.Size,
     ) -> torch.Tensor:
 
         # Sample context inputs
         xc = (
-            torch.rand((*batch_shape, nc, self.dim))
+            torch.rand((*batch_shape, n, self.dim))
             * (context_range[:, 1] - context_range[:, 0])
             + context_range[:, 0]
         )

@@ -224,7 +224,7 @@ def plot_gps(
             s=30,
         )
 
-        title_str = f"$N = {xc.shape[1]}$"
+        title_str = f"$NC = {xc.shape[1]}$" + f" $NT = {xt.shape[1]}$"
 
         plt.title(title_str, fontsize=24)
         plt.grid()

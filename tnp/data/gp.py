@@ -358,35 +358,40 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             n=nc,
             context_range=current_range,
             batch_shape=batch_shape)
-        yc, non_reversed_gt_pred = self.sample_outputs(x=xc)
+
+        if self.same_targets and self.shared_noise:
+            # Create target inputs by reversing context inputs around reversal_point
+            xt = 2 * self.reversal_point - xc
+            yc, non_reversed_gt_pred = self.sample_outputs(x=xc)
+            yt = yc
+
+        elif not self.shared_noise:
+            if self.same_targets:
+                xt = 2 * self.reversal_point - xc
+                xquery = torch.concat([xc, xc], axis = 1)
+            else:
+                xt_reversed = self.sample_inputs(
+                    n=nt,
+                    context_range=current_range,
+                    batch_shape=batch_shape)
+                xt = 2 * self.reversal_point - xt_reversed
+                xquery = torch.concat([xc, xt_reversed], axis = 1)
+                
+            yquery, non_reversed_gt_pred = self.sample_outputs(x=xquery)
+            yc = yquery[:, :nc, :]
+            yt = yquery[:, nc:, :]
+
+        else:
+            raise NotImplementedError("Noise can only be shared if targets are flipped contexts.")
+
+        x = torch.concat([xc, xt], axis=1)
+        y = torch.concat([yc, yt], axis=1)
 
         reversed_gt_pred = ReversedGPGroundTruthPredictor(
             base_gt_pred=non_reversed_gt_pred,
             reversal_point=self.reversal_point,
             context_range=current_range
         )
-
-        if self.same_targets and self.shared_noise:
-            # Create target inputs by reversing context inputs around reversal_point
-            xt = 2 * self.reversal_point - xc
-            yt = yc
-
-        elif self.same_targets and not self.shared_noise:
-            yt, _ = non_reversed_gt_pred.sample_outputs(x=xc)
-            xt = 2 * self.reversal_point - xc
-
-        else:
-            # Sample context inputs
-            xt_reversed = self.sample_inputs(
-                n=nt,
-                context_range=current_range,
-                batch_shape=batch_shape)
-            yt, _ = non_reversed_gt_pred.sample_outputs(x=xt_reversed)
-            # Create target inputs by reversing context inputs around reversal_point
-            xt = 2 * self.reversal_point - xt_reversed
-
-        x = torch.concat([xc, xt], axis=1)
-        y = torch.concat([yc, yt], axis=1)
         
         return SyntheticBatch(
             x=x,

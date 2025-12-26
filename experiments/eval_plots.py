@@ -26,6 +26,7 @@ def main():
         savefig=experiment.misc.savefig,
         logging=experiment.misc.logging,
         pred_fn=experiment.misc.pred_fn,
+        plot_gt=experiment.misc.plot_gt
     )
 
 

@@ -55,6 +55,8 @@ generators:
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
+    same_targets: False
+    shared_noise: False
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -102,7 +104,7 @@ params:
   dim_y: 1
   context_range: [[-4.0, 0.0]]
   target_range: [[0.0, 4.0]]
-  min_log10_lengthscale: -1
+  min_log10_lengthscale: -1.0
   max_log10_lengthscale: 0.0
   min_log10_period: 0
   max_log10_period: 0.301
@@ -110,7 +112,7 @@ params:
 
 misc:
   project: gp-reversal
-  eval_name: test_pure_memorisation
+  eval_name: test_interpolation_same_range_and_lengthscales
   seed: 1
   only_plots: True
   num_plots: 10
@@ -120,3 +122,4 @@ misc:
   plot_interval: 1
   check_val_every_n_epoch: 10
   plot_gt: False
+  plot_x_range: [-4.0, 4.0]

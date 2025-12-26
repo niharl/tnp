@@ -9,10 +9,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 50
-    max_nc: 100
-    min_nt: 50
-    max_nt: 100
+    min_nc: 1
+    max_nc: 64
+    min_nt: 1
+    max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 16_000
@@ -27,10 +27,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 50
-    max_nc: 100
-    min_nt: 50
-    max_nt: 100
+    min_nc: 1
+    max_nc: 64
+    min_nt: 1
+    max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
@@ -46,10 +46,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 50
-    max_nc: 100
-    min_nt: 50
-    max_nt: 100
+    min_nc: 1
+    max_nc: 64
+    min_nt: 1
+    max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
@@ -110,7 +110,7 @@ params:
 
 misc:
   project: gp-reversal
-  eval_name: test
+  eval_name: test_pure_memorisation
   seed: 1
   only_plots: True
   num_plots: 10
@@ -119,3 +119,4 @@ misc:
   logging: True
   plot_interval: 1
   check_val_every_n_epoch: 10
+  plot_gt: False

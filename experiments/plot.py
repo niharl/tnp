@@ -31,6 +31,7 @@ def plot(
     savefig: bool = False,
     logging: bool = True,
     pred_fn: Callable = np_pred_fn,
+    plot_gt: bool = True,
 ):
     steps = int(points_per_dim * (x_range[1] - x_range[0]))
     print('Running the plotting code now...')
@@ -98,7 +99,7 @@ def plot(
 
         title_str = f"$N = {xc.shape[1]}$ NLL = {model_nll:.3f}"
 
-        if isinstance(batch, SyntheticBatch) and batch.gt_pred is not None:
+        if isinstance(batch, SyntheticBatch) and batch.gt_pred is not None and plot_gt:
             with torch.no_grad():
                 gt_mean, gt_std, _ = batch.gt_pred(
                     xc=xc,

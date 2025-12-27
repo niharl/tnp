@@ -8,10 +8,10 @@ generator:
     - ${matern52_kernel}
     - ${periodic_kernel}
   noise_std: 0.1
-  min_nc: 100
-  max_nc: 100
-  min_nt: 100
-  max_nt: 100
+  min_nc: 10000
+  max_nc: 10000
+  min_nt: 10000
+  max_nt: 10000
   context_range: ${params.context_range}
   target_range: ${params.target_range}
   samples_per_epoch: 16_000
@@ -61,8 +61,8 @@ periodic_kernel:
 params:
   dim_x: 1
   dim_y: 1
-  context_range: [[-4.0, 0.0]]
-  target_range: [[0.0, 4.0]]
+  context_range: [[-400.0, 0.0]]
+  target_range: [[0.0, 400.0]]
   min_log10_lengthscale: -0.602
   max_log10_lengthscale: 0
   min_log10_period: 0.301
@@ -71,8 +71,8 @@ params:
   chunk_size: 100
 
 misc:
-  project: bulk_reversed_gp_generation
-  folder: reversed_gp_generation_10_Dec
+  project: nc_10000_200_epochs
+  folder: nc_10_000_2000_batches_reversed
   seed: 1
   num_plots: 10
   subplots: False

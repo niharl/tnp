@@ -97,7 +97,7 @@ def plot(
             label="Model",
         )
 
-        title_str = f"$N = {xc.shape[1]}$ NLL = {model_nll:.3f}"
+        title_str = f"$NC = {xc.shape[1]}$ $NT = {xt.shape[1]}$ NLL = {model_nll:.3f}"
 
         if isinstance(batch, SyntheticBatch) and batch.gt_pred is not None and plot_gt:
             with torch.no_grad():

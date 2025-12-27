@@ -17,6 +17,8 @@ generators:
     target_range: ${params.target_range}
     samples_per_epoch: 16_000
     batch_size: 8
+    same_targets: False
+    shared_noise: False
   val:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -36,6 +38,8 @@ generators:
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
+    same_targets: False
+    shared_noise: False
   test:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -121,5 +125,5 @@ misc:
   logging: True
   plot_interval: 1
   check_val_every_n_epoch: 10
-  plot_gt: False
+  plot_gt: True
   plot_x_range: [-4.0, 4.0]

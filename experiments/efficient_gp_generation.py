@@ -60,6 +60,7 @@ def serialize_batch(batch, batch_idx, seed):
 def main():
     timestamp = datetime.now().strftime("%H%M%S_%d-%m-%Y")
     experiment = initialize_experiment()
+    print('Starting experiment')
 
     # --- Configuration ---
     # Total batches to generate (e.g., 1,000,000)
@@ -67,7 +68,7 @@ def main():
     total_batches = experiment.params.total_batches
     
     # How many batches to store in a single .pt file (e.g., 1000)
-    chunk_size = 1000 
+    chunk_size = experiment.params.chunk_size 
     
     # Number of CPU workers for parallel generation
     num_workers = 4 
@@ -107,7 +108,7 @@ def main():
     chunk_size = experiment.params.chunk_size
     plot_freq = experiment.misc.plot_every_n_chunks
 
-    plots_per_batch = min(experiment.misc.num_lots, experiment.generator.batch_size)
+    plots_per_batch = min(experiment.misc.num_plots, experiment.generator.batch_size)
 
     # We use a manual loop to control the total count strictly
     for i in tqdm(range(total_batches)):

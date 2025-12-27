@@ -3,12 +3,14 @@ train_params:
   batch_size: 8
 
 val_params:
-  samples_per_epoch: 16_000
+  samples_per_epoch: 4096
   batch_size: 8
 
 params:
   dim_x: 1
   dim_y: 1
+  nc: 1000
+  nt: 1000
 
 misc:
   project: test-loading-pregenerated-gps

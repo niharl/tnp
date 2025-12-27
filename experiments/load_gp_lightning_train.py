@@ -26,13 +26,17 @@ def main():
     print(f"Loading TRAINING data from: {experiment.misc.gp_folder}")
     gen_train = ChunkedGPDataset(
         experiment.misc.gp_folder, 
-        shuffle_files=True 
+        shuffle_files=True,
+        nc = experiment.params.nc,
+        nt = experiment.params.nt
     )
 
     print(f"Loading VALIDATION data from: {experiment.misc.gp_folder}")
     gen_val = ChunkedGPDataset(
         experiment.misc.gp_folder, 
-        shuffle_files=False
+        shuffle_files=False,
+        nc = experiment.params.nc,
+        nt = experiment.params.nt
     )
     # --- DATASET LOADING LOGIC END ---
 

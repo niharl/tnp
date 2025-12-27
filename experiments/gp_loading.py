@@ -8,11 +8,13 @@ from tnp.data.synthetic import SyntheticBatch
 from tnp.data.gp import GPGroundTruthPredictor, ReversedGPGroundTruthPredictor
 
 class ChunkedGPDataset(IterableDataset):
-    def __init__(self, data_dir, shuffle_files=True):
+    def __init__(self, data_dir, shuffle_files=True, nc=None, nt=None):
         super().__init__()
         self.data_dir = data_dir
         self.files = sorted(glob.glob(os.path.join(data_dir, "*.pt")))
         self.shuffle_files = shuffle_files
+        self.nc = nc
+        self.nt = nt
         
         if not self.files:
             raise ValueError(f"No .pt files found in {data_dir}")
@@ -53,13 +55,19 @@ class ChunkedGPDataset(IterableDataset):
         if "gt_pred" in data:
             gt_pred = self._reconstruct_predictor(data["gt_pred"])
 
+        if self.nc is not None:
+            xc = data["xc"][:,:self.nc, :]
+            yc = data["yc"][:, :self.nc, :]
+        if self.nt is not None:
+            xt = data["xt"][:, :self.nt, :]
+            yt = data["yt"][:, :self.nt, :]
         return SyntheticBatch(
-            x=data["x"],
-            y=data["y"],
-            xt=data["xt"],
-            yt=data["yt"],
-            xc=data["xc"],
-            yc=data["yc"],
+            x=torch.concat([xc, xt], dim=1),
+            y=torch.concat([yc, yt], dim=1),
+            xt=xt,
+            yt=yt,
+            xc=xc,
+            yc=yc,
             gt_pred=gt_pred
         )
 

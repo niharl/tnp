@@ -145,12 +145,16 @@ def plot(
                 lw=3,
             )
 
+            title_str += f" GT NLL = {gt_nll:.3f}"
+
             if plot_reversal and hasattr(batch.gt_pred, 'reversal_point'):
                 assert isinstance(batch.gt_pred, ReversedGPGroundTruthPredictor)
                 reversal_point = batch.gt_pred.reversal_point
                 plt.axvline(x=reversal_point, color='green', linestyle='--', label='Reversal Point', lw=2)
 
-            title_str += f" GT NLL = {gt_nll:.3f}"
+                if hasattr(batch.gt_pred, 'priming_frac'):
+                    #title_str += f" PF = {batch.gt_pred.priming_frac:.2f}"
+                    pass
 
         plt.title(title_str, fontsize=24)
         plt.grid()

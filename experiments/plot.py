@@ -4,6 +4,7 @@ from typing import Callable, List, Tuple, Union
 
 import matplotlib
 import matplotlib.pyplot as plt
+from tnp.data.gp import ReversedGPGroundTruthPredictor
 import torch
 from torch import nn
 
@@ -32,6 +33,7 @@ def plot(
     logging: bool = True,
     pred_fn: Callable = np_pred_fn,
     plot_gt: bool = True,
+    plot_reversal:  bool = False,
 ):
     steps = int(points_per_dim * (x_range[1] - x_range[0]))
     print('Running the plotting code now...')
@@ -142,6 +144,11 @@ def plot(
                 label="Ground truth",
                 lw=3,
             )
+
+            if plot_reversal and hasattr(batch.gt_pred, 'reversal_point'):
+                assert isinstance(batch.gt_pred, ReversedGPGroundTruthPredictor)
+                reversal_point = batch.gt_pred.reversal_point
+                plt.axvline(x=reversal_point, color='green', linestyle='--', label='Reversal Point', lw=2)
 
             title_str += f" GT NLL = {gt_nll:.3f}"
 

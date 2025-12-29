@@ -154,6 +154,7 @@ class ReversedGPGroundTruthPredictor(GroundTruthPredictor):
             base_gt_pred: GPGroundTruthPredictor,
             reversal_point: float, 
             context_range: torch.Tensor, 
+            priming_frac: float = 0.0,
             **kwargs):
         super().__init__(**kwargs)
         self.base_gt_pred = base_gt_pred
@@ -161,6 +162,7 @@ class ReversedGPGroundTruthPredictor(GroundTruthPredictor):
         self.context_range = context_range
         self.min_context = context_range[:, 0]
         self.max_context = context_range[:, 1]
+        self.priming_frac = priming_frac
     
     def __call__(
         self,
@@ -449,6 +451,7 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
         batch_size: int,
         reversal_range: Tuple[float, float],
         priming_frac_range: Tuple[float, float],
+        context_in_targets: bool = False,
         **kwargs,
     ):
         super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
@@ -456,6 +459,7 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
         self.reversal_range = reversal_range
         self.priming_frac_range = priming_frac_range
         self.original_context_range = self.context_range.clone()
+        self.context_in_targets = context_in_targets
         
 
     def generate_batch(self) -> SyntheticBatch:
@@ -477,12 +481,19 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
 
         xc = batch.x[:, :batch.xc.shape[1] + n_priming, :]
         yc = batch.y[:, :batch.yc.shape[1] + n_priming, :]
-        xt = batch.x[:, batch.xc.shape[1] + n_priming:, :]
-        yt = batch.y[:, batch.yc.shape[1] + n_priming:, :]
+        if self.context_in_targets:
+            xt = batch.x
+            yt = batch.y
+        else:
+            xt = batch.x[:, batch.xc.shape[1] + n_priming:, :]
+            yt = batch.y[:, batch.yc.shape[1] + n_priming:, :]
+
+        assert isinstance(batch.gt_pred, ReversedGPGroundTruthPredictor)
+        batch.gt_pred.priming_frac = priming_frac
 
         return SyntheticBatch(
-            x=batch.x,
-            y=batch.y,
+            x=torch.concat([xc, xt], axis=1),
+            y=torch.concat([yc, yt], axis=1),
             xc=xc,
             yc=yc,
             xt=xt,

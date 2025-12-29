@@ -384,6 +384,9 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         else:
             raise NotImplementedError("Noise can only be shared if targets are flipped contexts.")
 
+        xt = xt.flip(dims=[-2])
+        yt = yt.flip(dims=[-2])
+
         x = torch.concat([xc, xt], axis=1)
         y = torch.concat([yc, yt], axis=1)
 
@@ -418,7 +421,75 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         )
 
         return xc
-    
+
+
+class RandomReversalGPGeneratorv2(RandomScaleGPGenerator):
+    """
+    Generates batches of GP data with randomised reversal point, and 
+    randomised size of the context range
+    """
+
+    def __init__(
+        self,
+        *,
+        min_nc: int,
+        max_nc: int,
+        min_nt: int,
+        max_nt: int,
+        batch_size: int,
+        reversal_range: Tuple[float, float],
+        priming_frac_range: Tuple[float, float],
+        same_targets: bool = True,
+        shared_noise: bool = True, 
+        **kwargs,
+    ):
+        super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
+                         max_nt = max_nt, batch_size=batch_size, **kwargs)
+        self.reversal_range = reversal_range
+        self.priming_frac_range = priming_frac_range
+        self.same_targets = same_targets
+        self.shared_noise = shared_noise
+        self.reversed_generator = ReversedContextGPGenerator(
+            min_nc = min_nc,
+            max_nc = max_nc,
+            min_nt = min_nt,
+            max_nt = max_nt,
+            batch_size = batch_size,
+            **kwargs,
+        )
+
+    def generate_batch(self) -> SyntheticBatch:
+        # Sample number of context = number of target points.
+        
+        reversal_point = float(torch.rand(1)) * (self.reversal_range[1] - self.reversal_range[0]) + self.reversal_range[0]        
+        current_range = self.context_range.clone()
+        current_range[:, 1] = reversal_point
+
+        self.reversed_generator.reversal_point = reversal_point
+        self.reversed_generator.context_range = current_range
+
+        batch = self.reversed_generator.generate_batch()
+
+        priming_frac_low = self.priming_frac_range[0]
+        priming_frac_high = self.priming_frac_range[1]
+        priming_frac = float(torch.rand(1)) * (priming_frac_high - priming_frac_low) + priming_frac_low
+        n_priming = int(priming_frac * batch.xc.shape[1])
+
+        xc = batch.x[:, :batch.xc.shape[1] + n_priming, :]
+        yc = batch.y[:, :batch.yc.shape[1] + n_priming, :]
+        xt = batch.x[:, batch.xc.shape[1] + n_priming:, :]
+        yt = batch.y[:, batch.yc.shape[1] + n_priming:, :]
+
+        return SyntheticBatch(
+            x=batch.x,
+            y=batch.y,
+            xc=xc,
+            yc=yc,
+            xt=xt,
+            yt=yt,
+            gt_pred=batch.gt_pred
+        )
+
 class RandomReversalGPGenerator(RandomScaleGPGenerator):
     """
     Generates batches of GP data with randomised reversal point, and 

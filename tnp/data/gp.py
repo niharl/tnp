@@ -434,13 +434,17 @@ class RandomReversalGPGenerator(RandomScaleGPGenerator):
         max_nt: int,
         batch_size: int,
         reversal_range: Tuple[float, float],
-        priming_frac: int,
+        priming_frac_range: Tuple[float, float],
+        same_targets: bool = True,
+        shared_noise: bool = True, 
         **kwargs,
     ):
         super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
                          max_nt = max_nt, batch_size=batch_size, **kwargs)
         self.reversal_range = reversal_range
-        self.priming_frac = priming_frac
+        self.priming_frac_range = priming_frac_range
+        self.same_targets = same_targets
+        self.shared_noise = shared_noise
 
     def generate_batch(self) -> SyntheticBatch:
         # Sample number of context = number of target points.
@@ -486,8 +490,12 @@ class RandomReversalGPGenerator(RandomScaleGPGenerator):
         y = torch.concat([y_base, y_flipped], axis=1)
 
         # Split into context and target sets
-        n_priming = int(self.priming_frac * nc)
-        if torch.rand(1) > 0.5:
+        priming_frac_low = self.priming_frac_range[0]
+        priming_frac_high = self.priming_frac_range[1]
+        priming_frac = float(torch.rand(1)) * (priming_frac_high - priming_frac_low) + priming_frac_low
+        n_priming = int(priming_frac * nc)
+        
+        if self.reversal_point >= 0.0:
             xc = x[:, :nc+n_priming, :]
             yc = y[:, :nc+n_priming, :]
             xt = x[:, nc+n_priming:, :]

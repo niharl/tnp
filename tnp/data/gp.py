@@ -180,7 +180,7 @@ class ReversedGPGroundTruthPredictor(GroundTruthPredictor):
         def transform_inputs(x):
             # Create a boolean mask: True where elements are inside the original context range
             # Broadcasting handles shape (Batch, N, Dim) vs (Dim,)
-            is_in_range = (x >= min_c) & (x <= max_c)
+            is_in_range = (x >= reversal_point) 
             
             # Calculate the reflection for ALL points: x' = 2 * r - x
             x_reflected = 2 * reversal_point - x

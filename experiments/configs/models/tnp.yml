@@ -67,7 +67,7 @@ params:
 
 
 misc:
-  name: TNP-context length 1-64, 200 epochs, interpolation training
+  name: V5 - interpolation with priming and random flip location
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
-  plot_interval: 10d
+  plot_interval: 10

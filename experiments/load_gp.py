@@ -23,7 +23,7 @@ def main():
     )
 
     # reconstruct predictor
-    if "gt_pred" in batch_dict:
+    if False: #"gt_pred" in batch_dict:
         pred_info = batch_dict["gt_pred"]
 
         # Instantiate from class name

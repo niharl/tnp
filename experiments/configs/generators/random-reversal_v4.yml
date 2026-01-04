@@ -16,12 +16,13 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
-    priming_frac_range:  [0, 1.0]
-    samples_per_epoch: 800
+    priming_frac_range: ${params.priming_frac_range}
+    samples_per_epoch: 16_000
     batch_size: 8
     same_targets: True
     shared_noise: True
     bidirectional_reversal: ${params.bidirectional_reversal}
+    context_in_targets: ${params.context_in_targets}
   val:
     _target_: tnp.data.gp.RandomReversalGPGeneratorv2
     dim: ${params.dim_x}
@@ -39,13 +40,14 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
-    priming_frac_range: [0.1, 0.9]
-    samples_per_epoch: 800
+    priming_frac_range: ${params.priming_frac_range}
+    samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
     same_targets: True
     shared_noise: True
     bidirectional_reversal: ${params.bidirectional_reversal}
+    context_in_targets: ${params.context_in_targets}
   test:
     _target_: tnp.data.gp.RandomReversalGPGeneratorv2
     dim: ${params.dim_x}
@@ -56,20 +58,21 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
+    min_nc: 64
     max_nc: 64
     min_nt: 128
     max_nt: 128
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
-    priming_frac_range: [0.1, 0.9]
+    priming_frac_range: [0.0, 0.0]
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
     same_targets: True
     shared_noise: True
     bidirectional_reversal: ${params.bidirectional_reversal}
+    context_in_targets: ${params.context_in_targets}
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -117,12 +120,14 @@ params:
   dim_y: 1
   context_range: [[-4.0, 4.0]]
   target_range: [[-4.0, 4.0]]
+  priming_frac_range: [0.0, 1.0]
   reversal_range: [-1.0, 1.0]
   min_log10_lengthscale: -0.602
   max_log10_lengthscale: 0.0
   min_log10_period: 0
   max_log10_period: 0.301
-  bidirectional_reversal: False
+  bidirectional_reversal: True
+  context_in_targets: True
 
 misc:
   project: random-reversal-with-priming
@@ -136,4 +141,5 @@ misc:
   plot_gt: True
   plot_reversal: True
   plot_interval: 1
-  check_val_every_n_epoch: 1
+  check_val_every_n_epoch: 10
+  plot_x_range: [-4.0, 4.0]

@@ -34,12 +34,14 @@ def plot(
     pred_fn: Callable = np_pred_fn,
     plot_gt: bool = True,
     plot_reversal:  bool = False,
+    outfolder: str = "fig",
 ):
     steps = int(points_per_dim * (x_range[1] - x_range[0]))
     print('Running the plotting code now...')
     x_plot = torch.linspace(x_range[0], x_range[1], steps).to(batches[0].xc)[
         None, :, None
     ]
+    print('Num fig:', num_fig)
     for i in range(num_fig):
         batch = batches[i]
         xc = batch.xc[:1]
@@ -169,12 +171,12 @@ def plot(
         plt.legend(loc="upper right", fontsize=10)
         plt.tight_layout()
 
-        fname = f"fig/{name}/{i:03d}"
+        fname = f"{outfolder}/{name}/{i:03d}"
         if wandb.run is not None and logging:
             wandb.log({fname: wandb.Image(fig)})
         elif savefig:
-            if not os.path.isdir(f"fig/{name}"):
-                os.makedirs(f"fig/{name}")
+            if not os.path.isdir(f"{outfolder}/{name}"):
+                os.makedirs(f"{outfolder}/{name}")
             plt.savefig(fname, bbox_inches="tight")
         else:
             plt.show()

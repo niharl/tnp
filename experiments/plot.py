@@ -153,7 +153,7 @@ def plot(
                 plt.axvline(x=reversal_point, color='green', linestyle='--', label='Reversal Point', lw=2)
 
                 if hasattr(batch.gt_pred, 'priming_frac'):
-                    #title_str += f" PF = {batch.gt_pred.priming_frac:.2f}"
+                    title_str += f"\nPF = {batch.gt_pred.priming_frac:.2f}"
                     pass
 
         plt.title(title_str, fontsize=24)

@@ -29,6 +29,7 @@ def main():
         plot_gt=experiment.misc.plot_gt,
         x_range=experiment.misc.plot_x_range,
         plot_reversal=experiment.misc.plot_reversal,
+        outfolder='eval'
     )
 
 

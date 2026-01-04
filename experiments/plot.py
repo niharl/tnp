@@ -166,7 +166,7 @@ def plot(
         plt.xticks(fontsize=24)
         plt.yticks(fontsize=24)
 
-        plt.legend(loc="upper right", fontsize=20)
+        plt.legend(loc="upper right", fontsize=10)
         plt.tight_layout()
 
         fname = f"fig/{name}/{i:03d}"
@@ -247,7 +247,7 @@ def plot_gps(
         plt.xticks(fontsize=24)
         plt.yticks(fontsize=24)
 
-        plt.legend(loc="upper right", fontsize=20)
+        plt.legend(loc="upper right", fontsize=10)
         plt.tight_layout()
 
         fname = f"fig/{name}/{i:03d}"

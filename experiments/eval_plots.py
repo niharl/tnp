@@ -27,7 +27,8 @@ def main():
         logging=experiment.misc.logging,
         pred_fn=experiment.misc.pred_fn,
         plot_gt=experiment.misc.plot_gt,
-        x_range=experiment.misc.plot_x_range
+        x_range=experiment.misc.plot_x_range,
+        plot_reversal=experiment.misc.plot_reversal,
     )
 
 

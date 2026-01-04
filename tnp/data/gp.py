@@ -317,6 +317,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         shared_noise: bool = True, # whether the noise is also shared between context and target
         bidirectional_reversal: bool = True, # whether to randomly reverse around reversal point or not
         sort_xs: bool = False, # whether to sort the context points along x axis
+        targets_only_outside_context: bool = False,
         **kwargs,
     ):
         super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 
@@ -326,6 +327,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         self.shared_noise = shared_noise
         self.bidirectional_reversal = bidirectional_reversal
         self.sort_xs = sort_xs
+        self.targets_only_outside_context = targets_only_outside_context
 
     def generate_batch(self) -> SyntheticBatch:
         # Sample number of context = number of target points.
@@ -385,7 +387,13 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
                     n=nt,
                     context_range=current_range,
                     batch_shape=batch_shape)
-                xt = 2 * self.reversal_point - xt_reversed
+                
+                if self.targets_only_outside_context:
+                    mask = torch.ones_like(xt_reversed, dtype=torch.bool)
+                else:
+                    mask = torch.rand_like(xt_reversed) < 0.5
+
+                xt = torch.where(mask, 2 * self.reversal_point - xt_reversed, xt_reversed)
                 xquery = torch.concat([xc, xt_reversed], axis = 1)
                 
             yquery, non_reversed_gt_pred = self.sample_outputs(x=xquery)
@@ -472,6 +480,7 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
         self.reversal_point = reversal_point
         self.context_range = current_range
 
+        
         batch = super().generate_batch()
 
         priming_frac_low = self.priming_frac_range[0]
@@ -479,14 +488,24 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
         priming_frac = float(torch.rand(1)) * (priming_frac_high - priming_frac_low) + priming_frac_low
         n_priming = int(priming_frac * batch.xc.shape[1])
 
-        xc = batch.x[:, :batch.xc.shape[1] + n_priming, :]
-        yc = batch.y[:, :batch.yc.shape[1] + n_priming, :]
-        if self.context_in_targets:
+        xc_priming = batch.xc[:, batch.xc.shape[1] - n_priming:, :]
+        yc_priming = batch.yc[:, batch.yc.shape[1] - n_priming:, :]
+        xc_priming = 2 * self.reversal_point - xc_priming
+        xc_priming = xc_priming.flip(dims=[-2])
+        yc_priming = yc_priming.flip(dims=[-2])
+
+        xc = torch.concat([batch.xc, xc_priming], axis=1)
+        yc = torch.concat([batch.yc, yc_priming], axis=1)
+
+        if self.same_targets and self.context_in_targets:
             xt = batch.x
             yt = batch.y
-        else:
+        elif self.same_targets:
             xt = batch.x[:, batch.xc.shape[1] + n_priming:, :]
             yt = batch.y[:, batch.yc.shape[1] + n_priming:, :]
+        else:
+            xt = batch.xt
+            yt = batch.yt
 
         assert isinstance(batch.gt_pred, ReversedGPGroundTruthPredictor)
         batch.gt_pred.priming_frac = priming_frac

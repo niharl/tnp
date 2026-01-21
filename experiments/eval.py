@@ -36,6 +36,18 @@ def main():
         test_result["mean_gt_loglik"] = gt_loglik.mean()
         test_result["std_gt_loglik"] = gt_loglik.std() / (len(gt_loglik) ** 0.5)
 
+    # --- Start of Augmented Print Statements ---
+    print("\n" + "=" * 40)
+    print(f"Evaluation Results: {eval_name}")
+    print(f"Number of Parameters: {num_params}")
+    print("-" * 40)
+    print(f"Mean Log-Likelihood: {test_result['mean_loglik']:.4f} ± {test_result['std_loglik']:.4f}")
+    
+    if "mean_gt_loglik" in test_result:
+        print(f"Mean GT LogLik:      {test_result['mean_gt_loglik']:.4f} ± {test_result['std_gt_loglik']:.4f}")
+    print("=" * 40 + "\n")
+    # --- End of Augmented Print Statements ---
+
     if experiment.misc.logging:
         wandb.run.summary["num_params"] = num_params
         wandb.run.summary[f"test/{eval_name}/loglik"] = test_result["mean_loglik"]

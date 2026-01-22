@@ -9,8 +9,8 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 10_000
-    max_nc: 10_000
+    min_nc: 1
+    max_nc: 64
     min_nt: 1
     max_nt: 64
     context_range: ${params.context_range}
@@ -19,6 +19,7 @@ generators:
     batch_size: 8
     same_targets: False
     shared_noise: False
+    targets_only_outside_context: True
   val:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -40,6 +41,7 @@ generators:
     deterministic: True
     same_targets: False
     shared_noise: False
+    targets_only_outside_context: True
   test:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -50,9 +52,9 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
+    min_nc: 32
     max_nc: 64
-    min_nt: 1
+    min_nt: 32
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
@@ -61,6 +63,7 @@ generators:
     deterministic: True
     same_targets: False
     shared_noise: False
+    targets_only_outside_context: False
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -116,7 +119,7 @@ params:
 
 misc:
   project: gp-reversal
-  eval_name: test_interpolation_same_range_and_lengthscales
+  eval_name: test_interpolation
   seed: 1
   only_plots: True
   num_plots: 10
@@ -126,4 +129,5 @@ misc:
   plot_interval: 1
   check_val_every_n_epoch: 10
   plot_gt: True
+  plot_reversal: False
   plot_x_range: [-4.0, 4.0]

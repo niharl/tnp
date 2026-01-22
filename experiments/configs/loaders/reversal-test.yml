@@ -9,12 +9,12 @@ val_params:
 params:
   dim_x: 1
   dim_y: 1
-  nc: 1000
-  nt: 1000
+  nc: 10_000
+  nt: 10_000
 
 misc:
   project: test-loading-pregenerated-gps
-  gp_folder: experiments/datasets/reversed_gp_generation_10_Dec
+  gp_folder: experiments/datasets/nc_10_000_2000_batches_reversed
   eval_name: test
   seed: 1
   only_plots: True

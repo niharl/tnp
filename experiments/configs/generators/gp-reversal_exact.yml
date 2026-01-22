@@ -9,8 +9,8 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 10_000
-    max_nc: 10_000
+    min_nc: 1
+    max_nc: 64
     min_nt: 1
     max_nt: 64
     context_range: ${params.context_range}
@@ -29,9 +29,9 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 1
+    min_nc: 32
     max_nc: 64
-    min_nt: 1
+    min_nt: 32
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
@@ -116,14 +116,16 @@ params:
 
 misc:
   project: gp-reversal
-  eval_name: test_interpolation_same_range_and_lengthscales
+  eval_name: test_exact
   seed: 1
   only_plots: True
-  num_plots: 10
+  num_plots: 0
   subplots: True
   savefig: False
   logging: True
   plot_interval: 1
   check_val_every_n_epoch: 10
-  plot_gt: True
+  plot_gt: False
+  plot_reversal: False
+
   plot_x_range: [-4.0, 4.0]

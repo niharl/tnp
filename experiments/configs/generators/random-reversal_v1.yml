@@ -65,7 +65,7 @@ generators:
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
-    priming_frac_range: [0.0, 0.0]
+    priming_frac_range: [0.0, 1.0]
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True

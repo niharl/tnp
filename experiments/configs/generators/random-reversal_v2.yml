@@ -58,14 +58,14 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 64
+    min_nc: 32
     max_nc: 64
-    min_nt: 128
-    max_nt: 128
+    min_nt: 32
+    max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
-    priming_frac_range: [0.0, 0.0]
+    priming_frac_range: [0.0, 1.0]
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True

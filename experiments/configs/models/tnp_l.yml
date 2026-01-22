@@ -58,7 +58,7 @@ params:
   num_layers: 5
   linear: True
 misc:
-  name: TNP-L${params.num_layers}-H${params.num_heads}-D${params.embed_dim}
+  name: Linear TNP - GP Reversal Interpolation
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

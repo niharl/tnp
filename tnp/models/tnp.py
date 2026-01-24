@@ -5,7 +5,8 @@ from check_shapes import check_shapes
 from torch import nn
 
 from ..networks.transformer import ISTEncoder, PerceiverEncoder, TNPTransformerEncoder
-from ..utils.helpers import preprocess_observations
+from ..networks.mamba import TNPMambaEncoder
+from ..utils.helpers import preprocess_observations, sort_context_target_separately
 from .base import ConditionalNeuralProcess
 
 
@@ -22,6 +23,7 @@ class TNPDecoder(nn.Module):
     def forward(
         self, z: torch.Tensor, xt: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
+        # This just makes sure that we only decode the target points.
         if xt is not None:
             zt = z[..., -xt.shape[-2] :, :]
         else:
@@ -32,7 +34,7 @@ class TNPDecoder(nn.Module):
 class TNPEncoder(nn.Module):
     def __init__(
         self,
-        transformer_encoder: Union[TNPTransformerEncoder, PerceiverEncoder, ISTEncoder],
+        transformer_encoder: Union[TNPTransformerEncoder, PerceiverEncoder, ISTEncoder, TNPMambaEncoder],
         xy_encoder: nn.Module,
         x_encoder: nn.Module = nn.Identity(),
         y_encoder: nn.Module = nn.Identity(),
@@ -50,6 +52,10 @@ class TNPEncoder(nn.Module):
     def forward(
         self, xc: torch.Tensor, yc: torch.Tensor, xt: torch.Tensor
     ) -> torch.Tensor:
+        if isinstance(self.transformer_encoder, TNPMambaEncoder):
+            # Sort x values for Mamba SSM
+            xc, yc, xt = sort_context_target_separately(xc, yc, xt)
+
         yc, yt = preprocess_observations(xt, yc)
 
         x = torch.cat((xc, xt), dim=1)

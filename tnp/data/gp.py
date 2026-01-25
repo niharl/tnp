@@ -403,7 +403,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         else:
             raise NotImplementedError("Noise can only be shared if targets are flipped contexts.")
 
-        if not flipped:
+        if self.sort_xs:
             xt = xt.flip(dims=[-2])
             yt = yt.flip(dims=[-2])
 

@@ -103,51 +103,52 @@ def plot(
 
         title_str = f"$NC = {xc.shape[1]}$ $NT = {xt.shape[1]}$ NLL = {model_nll:.3f}"
 
-        if isinstance(batch, SyntheticBatch) and batch.gt_pred is not None and plot_gt:
-            with torch.no_grad():
-                gt_mean, gt_std, _ = batch.gt_pred(
-                    xc=xc,
-                    yc=yc,
-                    xt=x_plot,
+        if isinstance(batch, SyntheticBatch) and batch.gt_pred is not None:
+            if plot_gt:
+                with torch.no_grad():
+                    gt_mean, gt_std, _ = batch.gt_pred(
+                        xc=xc,
+                        yc=yc,
+                        xt=x_plot,
+                    )
+                    _, _, gt_loglik = batch.gt_pred(
+                        xc=xc,
+                        yc=yc,
+                        xt=xt,
+                        yt=yt,
+                    )
+                    gt_loglik = gt_loglik[
+                        :1
+                    ]  # Need to do this because we cache during validation
+                    gt_nll = -gt_loglik.sum() / batch.yt[..., 0].numel()
+
+                # Plot ground truth
+                plt.plot(
+                    x_plot[0, :, 0].cpu(),
+                    gt_mean[0, :].cpu(),
+                    "--",
+                    color="tab:purple",
+                    lw=3,
                 )
-                _, _, gt_loglik = batch.gt_pred(
-                    xc=xc,
-                    yc=yc,
-                    xt=xt,
-                    yt=yt,
+
+                plt.plot(
+                    x_plot[0, :, 0].cpu(),
+                    gt_mean[0, :].cpu() + 2 * gt_std[0, :].cpu(),
+                    "--",
+                    color="tab:purple",
+                    lw=3,
                 )
-                gt_loglik = gt_loglik[
-                    :1
-                ]  # Need to do this because we cache during validation
-                gt_nll = -gt_loglik.sum() / batch.yt[..., 0].numel()
 
-            # Plot ground truth
-            plt.plot(
-                x_plot[0, :, 0].cpu(),
-                gt_mean[0, :].cpu(),
-                "--",
-                color="tab:purple",
-                lw=3,
-            )
+                plt.plot(
+                    x_plot[0, :, 0].cpu(),
+                    gt_mean[0, :].cpu() - 2 * gt_std[0, :].cpu(),
+                    "--",
+                    color="tab:purple",
+                    label="Ground truth",
+                    lw=3,
+                )
 
-            plt.plot(
-                x_plot[0, :, 0].cpu(),
-                gt_mean[0, :].cpu() + 2 * gt_std[0, :].cpu(),
-                "--",
-                color="tab:purple",
-                lw=3,
-            )
-
-            plt.plot(
-                x_plot[0, :, 0].cpu(),
-                gt_mean[0, :].cpu() - 2 * gt_std[0, :].cpu(),
-                "--",
-                color="tab:purple",
-                label="Ground truth",
-                lw=3,
-            )
-
-            title_str += f" GT NLL = {gt_nll:.3f}"
+                title_str += f" GT NLL = {gt_nll:.3f}"
 
             if plot_reversal and hasattr(batch.gt_pred, 'reversal_point'):
                 assert isinstance(batch.gt_pred, ReversedGPGroundTruthPredictor)

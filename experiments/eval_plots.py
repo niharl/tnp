@@ -37,6 +37,8 @@ def main():
         if hasattr(batch, 'x'): batch.x = batch.x.to(device)
         if hasattr(batch, 'y'): batch.y = batch.y.to(device)
     # --- END OF FIX ---
+    
+    eval_folder = getattr(experiment.misc, 'eval_folder', 'eval')
 
     eval_name = wandb.run.name + "/" + eval_name
     plot(
@@ -50,7 +52,7 @@ def main():
         plot_gt=experiment.misc.plot_gt,
         x_range=experiment.misc.plot_x_range,
         plot_reversal=experiment.misc.plot_reversal,
-        outfolder='eval_mamba'
+        outfolder=eval_folder,
     )
 
 

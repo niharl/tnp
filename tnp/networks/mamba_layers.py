@@ -18,9 +18,10 @@ class MambaEncoderLayer(nn.Module):
             self, 
             embed_dim, 
             norm=True, 
-            residual=False, 
-            mamba2=False,
-            enc_conv=False, 
+            residual=False, # Not implemented currently
+            mamba2=False, 
+            enc_conv=False, # Not implemented currently 
+            bidirectional_mamba=False,
             enc_conv_kernel=5, 
             enc_conv_dilation=0, 
             d_state=128, 
@@ -32,6 +33,7 @@ class MambaEncoderLayer(nn.Module):
         
         self.enc_conv = enc_conv
         self.norm = norm
+        self.bidirectional_mamba = bidirectional_mamba
 
         if not mamba2:
             self.mamba_layer = Mamba(
@@ -49,6 +51,23 @@ class MambaEncoderLayer(nn.Module):
                 d_conv=d_conv,    # Local convolution width
                 expand=block_expansion,    # Block expansion factor
             )
+
+        if self.bidirectional_mamba:
+            if not mamba2:
+                self.mamba_layer_backward = Mamba(
+                    # This module uses roughly 3 * expand * d_model^2 parameters
+                    d_model=embed_dim, # Model dimension d_model
+                    d_state=d_state,  # SSM state expansion factor
+                    d_conv=d_conv,    # Local convolution width
+                    expand=block_expansion,    # Block expansion factor
+                )
+            else:
+                self.mamba_layer_backward = Mamba2(
+                    d_model=embed_dim, # Model dimension d_model
+                    d_state=d_state,  # SSM state expansion factor
+                    d_conv=d_conv,    # Local convolution width
+                    expand=block_expansion,    # Block expansion factor
+                )
             
         if self.enc_conv:
             # Optional convolutional layer instead of feed-forward with activation
@@ -67,9 +86,12 @@ class MambaEncoderLayer(nn.Module):
     def forward(self, x):
         
         if self.norm:
-            x_ssm = self.mamba_layer(self.norm_layer_1(x))
-        else:
-            x_ssm = self.mamba_layer(x)
+            x = self.norm_layer_1(x)
+
+        x_ssm = self.mamba_layer(x)
+
+        if self.bidirectional_mamba:
+            x_ssm = x_ssm + self.mamba_layer_backward(x.flip(dims=[1])).flip(dims=[1])
 
         if self.residual:
             x = x + x_ssm

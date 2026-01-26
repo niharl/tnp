@@ -54,6 +54,8 @@ def run_benchmark():
     print(f"Batches per run: {batches_to_run}")
     print("-" * 60)
 
+    nt = conf.loader_params.params.nt
+
     for model in models:
         for count in nc_range:
             
@@ -80,7 +82,7 @@ def run_benchmark():
             # 3. Add Config File (Last)
             cmd.extend(["--config", f"experiments/configs/models/{model}.yml"])
 
-            print(f"Benchmarking {model} | nc=nt={count}...", end=" ", flush=True)
+            print(f"Benchmarking {model} | nc={count}...", end=" ", flush=True)
 
             try:
                 # Capture both stdout (for custom stats) and stderr (for errors)
@@ -119,7 +121,7 @@ def run_benchmark():
                     print(f"Speed: {speed:.2f} it/s")
                     results.append({
                         "model": model,
-                        "nc_nt": count,
+                        "nc": count,
                         "it_s": speed
                     })
                 else:
@@ -132,15 +134,15 @@ def run_benchmark():
 
     if results:
         df = pd.DataFrame(results)
-        pivot_df = df.pivot(index='nc_nt', columns='model', values='it_s')
+        pivot_df = df.pivot(index='nc', columns='model', values='it_s')
         
         print("\n" + "="*30)
         print("FINAL RESULTS")
         print("="*30)
         print(pivot_df.to_string(float_format="%.2f"))
         
-        pivot_df.to_csv("training_timing_results.csv")
-        print("\nSaved to 'training_timing_results.csv'")
+        pivot_df.to_csv(conf.loader_params.misc.save_path)
+        print(f"\nSaved to '{conf.loader_params.misc.save_path}'")
     else:
         print("\nNo results collected.")
 

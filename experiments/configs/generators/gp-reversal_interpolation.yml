@@ -17,9 +17,10 @@ generators:
     target_range: ${params.target_range}
     samples_per_epoch: 16_000
     batch_size: 8
-    same_targets: False
-    shared_noise: False
-    targets_only_outside_context: True
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
+    bidirectional_reversal: ${params.bidirectional_reversal}
+    sort_xs: ${params.sort_xs} # Needs to be sorted if using Mamba encoder
   val:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -39,9 +40,10 @@ generators:
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
-    same_targets: False
-    shared_noise: False
-    targets_only_outside_context: True
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
+    bidirectional_reversal: ${params.bidirectional_reversal}
+    sort_xs: ${params.sort_xs}
   test:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -61,10 +63,10 @@ generators:
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
-    same_targets: False
-    shared_noise: False
-    targets_only_outside_context: False
-
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
+    bidirectional_reversal: ${params.bidirectional_reversal}
+    sort_xs: ${params.sort_xs}
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
   _partial_: True
@@ -115,14 +117,17 @@ params:
   max_log10_lengthscale: 0.0
   min_log10_period: 0
   max_log10_period: 0.301
-
+  same_targets: False
+  shared_noise: False
+  bidirectional_reversal: False
+  sort_xs: True
 
 misc:
   project: gp-reversal
   eval_name: test_interpolation
   seed: 1
   only_plots: True
-  num_plots: 10
+  num_plots: 20
   subplots: True
   savefig: False
   logging: True

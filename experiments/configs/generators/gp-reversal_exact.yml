@@ -9,17 +9,18 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 32
+    min_nc: 1
     max_nc: 64
-    min_nt: 32
+    min_nt: 1
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 16_000
     batch_size: 8
-    same_targets: True
-    shared_noise: True
-    bidirectional_reversal: False
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
+    bidirectional_reversal: ${params.bidirectional_reversal}
+    sort_xs: ${params.sort_xs} # Needs to be sorted if using Mamba encoder
   val:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -30,18 +31,19 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 32
+    min_nc: 1
     max_nc: 64
-    min_nt: 32
+    min_nt: 1
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
-    same_targets: True
-    shared_noise: True
-    bidirectional_reversal: False
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
+    bidirectional_reversal: ${params.bidirectional_reversal}
+    sort_xs: ${params.sort_xs}
   test:
     _target_: tnp.data.gp.ReversedContextGPGenerator
     dim: ${params.dim_x}
@@ -52,18 +54,19 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 32
+    min_nc: 1
     max_nc: 64
-    min_nt: 32
+    min_nt: 1
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     samples_per_epoch: 4096
     batch_size: 8
     deterministic: True
-    same_targets: True
-    shared_noise: True
-    bidirectional_reversal: False
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
+    bidirectional_reversal: ${params.bidirectional_reversal}
+    sort_xs: ${params.sort_xs}
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
   _partial_: True
@@ -114,19 +117,23 @@ params:
   max_log10_lengthscale: 0.0
   min_log10_period: 0
   max_log10_period: 0.301
-
+  same_targets: True
+  shared_noise: True
+  bidirectional_reversal: False
+  sort_xs: True
 
 misc:
   project: gp-reversal
   eval_name: test_exact
+  eval_folder: eval_nc_200
   seed: 1
   only_plots: True
-  num_plots: 0
+  num_plots: 20
   subplots: True
   savefig: False
   logging: True
   plot_interval: 1
-  check_val_every_n_epoch: 1
-  plot_gt: True
+  check_val_every_n_epoch: 10
+  plot_gt: False
   plot_reversal: False
   plot_x_range: [-4.0, 4.0]

@@ -58,10 +58,10 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 64
+    min_nc: 32
     max_nc: 64
-    min_nt: 128
-    max_nt: 128
+    min_nt: 32
+    max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
@@ -120,7 +120,7 @@ params:
   dim_y: 1
   context_range: [[-4.0, 4.0]]
   target_range: [[-4.0, 4.0]]
-  priming_frac_range: [0.8, 0.8]
+  priming_frac_range: [0.0, 1.0]
   reversal_range: [0.0, 1.0]
   min_log10_lengthscale: -0.602
   max_log10_lengthscale: 0.0
@@ -132,9 +132,10 @@ params:
 misc:
   project: random-reversal-with-priming
   eval_name: test
+  eval_folder: eval_mamba
   seed: 1
   only_plots: True
-  num_plots: 20
+  num_plots: 10
   subplots: True
   savefig: False
   logging: True

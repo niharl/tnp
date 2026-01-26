@@ -52,9 +52,6 @@ class TNPEncoder(nn.Module):
     def forward(
         self, xc: torch.Tensor, yc: torch.Tensor, xt: torch.Tensor
     ) -> torch.Tensor:
-        if isinstance(self.transformer_encoder, TNPMambaEncoder):
-            # Sort x values for Mamba SSM
-            xc, yc, xt = sort_context_target_separately(xc, yc, xt)
 
         yc, yt = preprocess_observations(xt, yc)
 

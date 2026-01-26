@@ -67,7 +67,7 @@ def run_benchmark():
             # 2. Add Benchmark Overrides
             current_overrides.extend([
                 f"params.nc={count}",
-                f"params.nt={count}",
+                f"params.nt={nt}",
                 f"train_params.samples_per_epoch={samples_per_epoch}",
                 f"train_params.batch_size={batch_size}",
                 f"params.epochs={epochs}",

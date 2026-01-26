@@ -317,7 +317,7 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
         shared_noise: bool = True, # whether the noise is also shared between context and target
         bidirectional_reversal: bool = True, # whether to randomly reverse around reversal point or not
         sort_xs: bool = False, # whether to sort the context points along x axis
-        targets_only_outside_context: bool = False,
+        targets_only_outside_context: bool = True,
         **kwargs,
     ):
         super().__init__(min_nc=min_nc, max_nc=max_nc, min_nt = min_nt, 

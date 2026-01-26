@@ -6,7 +6,7 @@ from torch import nn
 
 from ..networks.transformer import ISTEncoder, PerceiverEncoder, TNPTransformerEncoder
 from ..networks.mamba import TNPMambaEncoder
-from ..utils.helpers import preprocess_observations, sort_context_target_separately
+from ..utils.helpers import preprocess_observations
 from .base import ConditionalNeuralProcess
 
 

@@ -14,7 +14,7 @@ from check_shapes import check_shapes
 from torch import nn
 
 from ..networks.transformer import ISTEncoder, PerceiverEncoder, TNPTransformerEncoder
-from ..networks.mamba import MNPD_MambaEncoder, MNPDMambaEncoder, TNPMambaEncoder
+from ..networks.mamba import MNPDMambaEncoder, TNPMambaEncoder
 from ..utils.helpers import preprocess_observations
 from .base import ConditionalNeuralProcess
 
@@ -78,6 +78,7 @@ class MNPEncoder(nn.Module):
         zc = torch.cat((xc_encoded, yc_encoded), dim=-1)
         zt = torch.cat((xt_encoded, yt_encoded), dim=-1)
         zc = self.xy_encoder(zc)
+        zt = self.xy_encoder(zt)
 
         zt = self.mamba_encoder(zc, zt)
         return zt

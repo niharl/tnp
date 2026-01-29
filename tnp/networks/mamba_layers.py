@@ -87,6 +87,7 @@ class MambaEncoderLayer(nn.Module):
 
     def set_layer_idx(self, idx):
         self.layer_idx = idx
+        self.mamba_layer.layer_idx = idx
 
     def forward(self, x, inference_params=None):
         

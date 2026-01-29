@@ -1,51 +1,45 @@
 model:
   _target_: tnp.models.mnp.MNP
-  encoder: ${tnp_encoder}
-  decoder: ${tnp_decoder}
+  encoder: ${mnp_encoder}
+  decoder: ${mnp_decoder}
   likelihood: ${likelihood}
 
 mnp_encoder:
-  _target_: tnp.models.tnp.TNPEncoder
+  _target_: tnp.models.mnp.MNPEncoder
   mamba_encoder: ${mamba_encoder}
   xy_encoder: ${xy_encoder}
+  # x_encoder and y_encoder default to Identity, which is standard
 
 mamba_encoder:
-  _target_: tnp.networks.mamba.TNPMambaEncoder
-  mamba_layer: ${mamba_layer}
-  mhca_layer: ${mhca_layer}
+  _target_: tnp.networks.mamba.MNPDMambaEncoder
   num_layers: ${params.num_layers}
+  mamba_layer: ${mamba_layer}
 
 mamba_layer:
-  _target_: tnp.networks.mamba.MambaEncoderLayer
-  embed_dim: ${params.embed_dim}  # Dimension of the input features/embeddings
-  norm: True                 # Apply normalization (e.g. LayerNorm)
-  residual: False            # Apply residual connection
-  mamba2: False              # Use Mamba2 implementation if true
-  enc_conv: False            # Enable encoding convolution
-  enc_conv_kernel: 5         # Kernel size for encoding convolution
-  enc_conv_dilation: 0       # Dilation rate for encoding convolution
-  d_state: 128               # SSM state dimension
-  block_expansion: 2         # Expansion factor (inner dim = block_expansion * embed_dim)
-  d_conv: 4                  # Local convolution kernel size
-  bidirectional_mamba: False # Use bidirectional Mamba
-
-mhca_layer:
-  _target_: tnp.networks.attention_layers.MultiHeadCrossAttentionLayer
+  # Defined in mamba_layers.py
+  _target_: tnp.networks.mamba_layers.MambaEncoderLayer
   embed_dim: ${params.embed_dim}
-  num_heads: ${params.num_heads}
-  head_dim: ${params.head_dim}
-  feedforward_dim: ${params.embed_dim}
-  norm_first: ${params.norm_first}
+  norm: True
+  residual: False            
+  mamba2: False              
+  enc_conv: False            
+  enc_conv_kernel: 5         
+  enc_conv_dilation: 0       
+  d_state: 128               
+  block_expansion: 2         
+  d_conv: 4                  
+  bidirectional_mamba: False
 
 xy_encoder:
   _target_: tnp.networks.mlp.MLP
+  # Input dim is typically 1 (mask/density) + dim_y + dim_x
   in_dim: ${eval:'1 + ${params.dim_y} + ${params.dim_x}'}
   out_dim: ${params.embed_dim}
   num_layers: 2
   width: ${params.embed_dim}
 
-tnp_decoder:
-  _target_: tnp.models.tnp.TNPDecoder
+mnp_decoder:
+  _target_: tnp.models.mnp.MNPDecoder
   z_decoder: ${z_decoder}
 
 z_decoder:
@@ -66,14 +60,13 @@ optimiser:
 params:
   epochs: 200
   embed_dim: 128
-  num_heads: 8
+  num_heads: 8 # Kept as parameter variable, though unused by MNPDMambaEncoder
   head_dim: 16
   norm_first: True
   num_layers: 5
 
-
 misc:
-  name: Mamba TNP V5 - Interpolation with priming and random flip location
+  name: MNP-D tests
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

@@ -14,7 +14,51 @@ from .attention_layers import (
 from .mamba_layers import MambaEncoderLayer
 from .transformer import _get_clones
 
+class InferenceParams:
+    """Minimal container for Mamba states."""
+    def __init__(self, max_seqlen, batch_size):
+        self.max_seqlen = max_seqlen
+        self.max_batch_size = batch_size
+        self.seqlen_offset = 0
+        self.key_value_memory_dict = {}
 
+class MNPDMambaEncoder(nn.Module):
+    def __init__(
+        self,
+        num_layers: int,
+        mamba_layer: MambaEncoderLayer,
+    ):
+        super().__init__()
+
+        self.mamba_layers = _get_clones(mamba_layer, num_layers)
+    
+    @check_shapes(
+        "xc: [m, nc, d]", "xt: [m, nt, d]", "mask: [m, nt, nc]", "return: [m, nt, d]"
+    )
+    def forward(
+        self, xc: torch.Tensor, xt: torch.Tensor,
+        mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        batch_size = xc.shape[0]
+        inference_params = InferenceParams(max_seqlen=2048 # this is irrelevant/unused
+                                           , batch_size=batch_size)
+        inference_params.seqlen_offset = 0
+
+        layer_idx = 0
+        for mamba_layer in self.mamba_layers:
+            if mask is not None:
+                warnings.warn("mask is not currently being used.")
+
+            mamba_layer.set_layer_idx(layer_idx)
+            # pass contexts through Mamba encoder layers
+            xc = mamba_layer(xc, inference_params=inference_params)
+            
+            # step outputs of Mamba encoder layers for each target point
+            xt = mamba_layer.step_independent(xt, inference_params)
+
+            layer_idx += 1
+            
+        return xt
 
 class TNPMambaEncoder(nn.Module):
     def __init__(
@@ -42,27 +86,5 @@ class TNPMambaEncoder(nn.Module):
 
             xc = mamba_layer(xc)
             xt = mhca_layer(xt, xc)
-
-        return xt
-
-class MNP_NDMambaEncoder(nn.Module):
-    def __init__(
-        self,
-        num_layers: int,
-        mamba_layer: MambaEncoderLayer,
-    ):
-        super().__init__()
-
-        self.mamba_layers = _get_clones(mamba_layer, num_layers)
-
-    @check_shapes(
-        "xc: [m, nc, d]", "xt: [m, nt, d]", "mask: [m, nt, nc]", "return: [m, nt, d]"
-    )
-    def forward(
-        self, xc: torch.Tensor, xt: torch.Tensor
-    ) -> torch.Tensor:
-
-        for mamba_layer in self.mamba_layers:
-            x = mamba_layer(x)
 
         return xt

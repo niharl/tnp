@@ -27,6 +27,7 @@ class MambaEncoderLayer(nn.Module):
             d_state=128, 
             block_expansion=2, 
             d_conv=4,
+            layer_idx=None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -34,6 +35,7 @@ class MambaEncoderLayer(nn.Module):
         self.enc_conv = enc_conv
         self.norm = norm
         self.bidirectional_mamba = bidirectional_mamba
+        self.layer_idx = layer_idx
 
         if not mamba2:
             self.mamba_layer = Mamba(
@@ -83,14 +85,19 @@ class MambaEncoderLayer(nn.Module):
 
         self.residual = residual
 
-    def forward(self, x):
+    def set_layer_idx(self, idx):
+        self.layer_idx = idx
+
+    def forward(self, x, inference_params=None):
         
         if self.norm:
             x = self.norm_layer_1(x)
 
-        x_ssm = self.mamba_layer(x)
+        x_ssm = self.mamba_layer(x, inference_params=inference_params)
 
         if self.bidirectional_mamba:
+            if inference_params is not None:
+                raise NotImplementedError("Bidirectional Mamba with inference params is not implemented.")
             x_ssm = x_ssm + self.mamba_layer_backward(x.flip(dims=[1])).flip(dims=[1])
 
         if self.residual:
@@ -103,6 +110,52 @@ class MambaEncoderLayer(nn.Module):
         else:
             x_out = self.stage_2_layer(x) 
         
+        if self.residual:
+            x_out = x_out + x
+
+        return x_out
+    
+    def step_independent(self, xt, inference_params):
+        """
+        Process independent targets xt using the cached context from inference_params.
+        
+        Args:
+            xt: (Batch, Num_Targets, Dim)
+            inference_params: Cache containing the context state.
+        """
+        batch, nt, _ = xt.shape
+
+        if self.norm:
+            x = self.norm_layer_1(xt)
+        else:
+            x = xt
+
+        cached_conv, cached_ssm = inference_params.key_value_memory_dict[self.layer_idx]
+        
+        # Reshape input to "Super Batch": (B*Nt, 1, D)
+        x_mamba_in = einops.rearrange(x, "b nt d -> (b nt) 1 d")
+        
+        # Repeat States: (B, D, State) -> (B*Nt, D, State)
+        # This creates independent copies for every target.
+        conv_state = einops.repeat(cached_conv, "b ... -> (b nt) ...", nt=nt).contiguous()
+        ssm_state = einops.repeat(cached_ssm, "b ... -> (b nt) ...", nt=nt).contiguous()
+
+        # Step the mamba layer separately for each target point
+        out_flat, _, _ = self.mamba_layer.step(x_mamba_in, conv_state, ssm_state)
+        
+        # Reshape back: (B, Nt, D)
+        x_ssm = einops.rearrange(out_flat, "(b nt) 1 d -> b nt d", b=batch, nt=nt)
+
+        if self.residual:
+            x = x + x_ssm
+        else:
+            x = x_ssm
+
+        if self.norm:
+            x_out = self.stage_2_layer(self.norm_layer_2(x))
+        else:
+            x_out = self.stage_2_layer(x)
+
         if self.residual:
             x_out = x_out + x
 

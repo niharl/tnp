@@ -54,9 +54,9 @@ generators:
       - ${matern52_kernel}
       - ${periodic_kernel}
     noise_std: 0.1
-    min_nc: 32
+    min_nc: 1
     max_nc: 64
-    min_nt: 32
+    min_nt: 1
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
@@ -65,7 +65,7 @@ generators:
     deterministic: True
     same_targets: ${params.same_targets}
     shared_noise: ${params.shared_noise}
-    bidirectional_reversal: ${params.bidirectional_reversal}
+    bidirectional_reversal: False
     sort_xs: ${params.sort_xs}
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -119,12 +119,13 @@ params:
   max_log10_period: 0.301
   same_targets: False
   shared_noise: False
-  bidirectional_reversal: False
+  bidirectional_reversal: True
   sort_xs: True
 
 misc:
-  project: gp-reversal
-  eval_name: test_interpolation
+  project: fixed-reversal-interpolation-500-epochs
+  eval_name: eval
+  eval_folder: eval
   seed: 1
   only_plots: True
   num_plots: 20

@@ -65,7 +65,7 @@ generators:
     deterministic: True
     same_targets: ${params.same_targets}
     shared_noise: ${params.shared_noise}
-    bidirectional_reversal: ${params.bidirectional_reversal}
+    bidirectional_reversal: False
     sort_xs: ${params.sort_xs}
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -119,12 +119,12 @@ params:
   max_log10_period: 0.301
   same_targets: True
   shared_noise: True
-  bidirectional_reversal: False
+  bidirectional_reversal: True
   sort_xs: True
 
 misc:
-  project: gp-reversal
-  eval_name: test_exact
+  project: fixed-reversal-exact-500-epochs
+  eval_name: eval
   eval_folder: eval_nc_200
   seed: 1
   only_plots: True

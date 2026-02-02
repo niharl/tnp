@@ -130,7 +130,7 @@ params:
   context_in_targets: False
 
 misc:
-  project: random-reversal-with-priming
+  project: mamba-tests #random-reversal-with-priming
   eval_name: test
   eval_folder: eval_mamba
   seed: 1

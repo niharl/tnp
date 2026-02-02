@@ -4,8 +4,6 @@ experiment:
   script: "experiments/load_gp_lightning_train.py"
 
 models:
-  - tnp
-  - tnp_l
   - tnp_m
 
 context_target:

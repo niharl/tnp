@@ -73,8 +73,9 @@ generators:
     deterministic: True
     same_targets: False
     shared_noise: False
-    bidirectional_reversal: ${params.bidirectional_reversal}
-    context_in_targets: ${params.context_in_targets}
+    targets_only_outside_context: ${params.targets_only_outside_context}
+    bidirectional_reversal: False
+    context_in_targets: False
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -135,11 +136,12 @@ params:
   context_in_targets: False
 
 misc:
-  project: random-reversal-with-priming
-  eval_name: test-interpolation
+  project: random-reversal-with-priming_v5
+  eval_name: eval
+  eval_folder: eval
   seed: 1
   only_plots: True
-  num_plots: 10
+  num_plots: 20
   subplots: True
   savefig: False
   logging: True

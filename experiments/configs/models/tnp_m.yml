@@ -27,6 +27,7 @@ mamba_layer:
   d_state: 128               # SSM state dimension
   block_expansion: 2         # Expansion factor (inner dim = block_expansion * embed_dim)
   d_conv: 4                  # Local convolution kernel size
+  bidirectional_mamba: False # Use bidirectional Mamba
 
 mhca_layer:
   _target_: tnp.networks.attention_layers.MultiHeadCrossAttentionLayer
@@ -63,7 +64,7 @@ optimiser:
   lr: 5.0e-4
 
 params:
-  epochs: 200
+  epochs: 500
   embed_dim: 128
   num_heads: 8
   head_dim: 16
@@ -72,7 +73,7 @@ params:
 
 
 misc:
-  name: Mamba TNP V5 - Interpolation with priming and random flip location
+  name: Mamba TNP V5 - Random reversal point, independent reversal
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

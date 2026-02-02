@@ -27,7 +27,6 @@ mhca_layer:
   head_dim: ${params.head_dim}
   feedforward_dim: ${params.embed_dim}
   norm_first: ${params.norm_first}
-  linear: ${params.linear}
 xy_encoder:
   _target_: tnp.networks.mlp.MLP
   in_dim: ${eval:'1 + ${params.dim_y} + ${params.dim_x}'}
@@ -58,7 +57,7 @@ params:
   num_layers: 5
   linear: True
 misc:
-  name: Linear TNP V5 - Random reversal point, independent reversal
+  name: Linear MHSA TNP V5 - Random reversal point, independent reversal
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

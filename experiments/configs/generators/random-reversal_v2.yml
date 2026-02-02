@@ -72,7 +72,7 @@ generators:
     same_targets: True
     shared_noise: True
     bidirectional_reversal: ${params.bidirectional_reversal}
-    context_in_targets: ${params.context_in_targets}
+    context_in_targets: False
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -127,12 +127,12 @@ params:
   min_log10_period: 0
   max_log10_period: 0.301
   bidirectional_reversal: False
-  context_in_targets: False # THIS IS TYPICALLY TRUE!!
+  context_in_targets: True
 
 misc:
-  project: random-reversal-with-priming
-  eval_name: test
-  eval_folder: eval_mamba
+  project: random-reversal-with-priming_v2
+  eval_name: eval
+  eval_folder: eval
   seed: 1
   only_plots: True
   num_plots: 20

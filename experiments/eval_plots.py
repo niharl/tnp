@@ -39,8 +39,7 @@ def main():
     # --- END OF FIX ---
     
     eval_folder = getattr(experiment.misc, 'eval_folder', 'eval')
-
-    eval_name = wandb.run.name + "/" + eval_name
+    eval_name = eval_name
     plot(
         model=model,
         batches=batches,

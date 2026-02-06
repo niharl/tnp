@@ -5,7 +5,7 @@ from check_shapes import check_shapes
 from torch import nn
 
 from ..networks.transformer import ISTEncoder, PerceiverEncoder, TNPTransformerEncoder
-from ..networks.mamba import TNPMambaEncoder
+from ..networks.mamba import MNPNDMambaEncoder, TNPMambaEncoder
 from ..utils.helpers import preprocess_observations
 from .base import ConditionalNeuralProcess
 
@@ -34,7 +34,7 @@ class TNPDecoder(nn.Module):
 class TNPEncoder(nn.Module):
     def __init__(
         self,
-        transformer_encoder: Union[TNPTransformerEncoder, PerceiverEncoder, ISTEncoder, TNPMambaEncoder],
+        transformer_encoder: Union[TNPTransformerEncoder, PerceiverEncoder, ISTEncoder, TNPMambaEncoder, MNPNDMambaEncoder],
         xy_encoder: nn.Module,
         x_encoder: nn.Module = nn.Identity(),
         y_encoder: nn.Module = nn.Identity(),

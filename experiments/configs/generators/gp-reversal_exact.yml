@@ -119,11 +119,11 @@ params:
   max_log10_period: 0.301
   same_targets: True
   shared_noise: True
-  bidirectional_reversal: True
+  bidirectional_reversal: False
   sort_xs: True
 
 misc:
-  project: fixed-reversal-exact-500-epochs
+  project: Mamba tests #fixed-reversal-exact-500-epochs
   eval_name: eval
   eval_folder: eval_nc_200
   seed: 1
@@ -133,7 +133,7 @@ misc:
   savefig: False
   logging: True
   plot_interval: 1
-  check_val_every_n_epoch: 10
+  check_val_every_n_epoch: 1
   plot_gt: False
   plot_reversal: False
   plot_x_range: [-4.0, 4.0]

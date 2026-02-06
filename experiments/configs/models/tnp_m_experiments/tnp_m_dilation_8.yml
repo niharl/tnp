@@ -14,12 +14,14 @@ transformer_encoder:
   mamba_layer: ${mamba_layer}
   mhca_layer: ${mhca_layer}
   num_layers: ${params.num_layers}
+  cross_attention_dilation: True
+  dilation_factor: 8
 
 mamba_layer:
   _target_: tnp.networks.mamba.MambaEncoderLayer
   embed_dim: ${params.embed_dim}  # Dimension of the input features/embeddings
   norm: True                 # Apply normalization (e.g. LayerNorm)
-  residual: True             # Apply residual connection
+  residual: False            # Apply residual connection
   mamba2: False              # Use Mamba2 implementation if true
   enc_conv: False            # Enable encoding convolution
   enc_conv_kernel: 5         # Kernel size for encoding convolution
@@ -73,7 +75,7 @@ params:
 
 
 misc:
-  name: Mamba TNP V5 - Random reversal point, independent reversal
+  name: Mamba TNP V5 - Dilation 8
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

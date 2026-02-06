@@ -10,9 +10,8 @@ tnp_encoder:
   xy_encoder: ${xy_encoder}
 
 transformer_encoder:
-  _target_: tnp.networks.mamba.TNPMambaEncoder
+  _target_: tnp.networks.mamba.MNPNDMambaEncoder
   mamba_layer: ${mamba_layer}
-  mhca_layer: ${mhca_layer}
   num_layers: ${params.num_layers}
 
 mamba_layer:
@@ -27,7 +26,7 @@ mamba_layer:
   d_state: 128               # SSM state dimension
   block_expansion: 2         # Expansion factor (inner dim = block_expansion * embed_dim)
   d_conv: 4                  # Local convolution kernel size
-  bidirectional_mamba: False # Use bidirectional Mamba
+  bidirectional_mamba: True  # Use bidirectional Mamba
 
 mhca_layer:
   _target_: tnp.networks.attention_layers.MultiHeadCrossAttentionLayer
@@ -73,7 +72,7 @@ params:
 
 
 misc:
-  name: Mamba TNP V5 - Random reversal point, independent reversal
+  name: MNP-ND tests
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

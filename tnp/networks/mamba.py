@@ -60,17 +60,48 @@ class MNPDMambaEncoder(nn.Module):
             
         return xt
 
+class MNPNDMambaEncoder(nn.Module):
+    def __init__(
+        self,
+        num_layers: int,
+        mamba_layer: MambaEncoderLayer,
+    ):
+        super().__init__()
+
+        self.mamba_layers = _get_clones(mamba_layer, num_layers)
+    
+    @check_shapes(
+        "xc: [m, nc, d]", "xt: [m, nt, d]", "mask: [m, nt, nc]", "return: [m, nt, d]"
+    )
+    def forward(
+        self, xc: torch.Tensor, xt: torch.Tensor,
+        mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        
+        x = torch.concat((xc, xt), dim=1)
+        for mamba_layer in self.mamba_layers:
+            if mask is not None:
+                warnings.warn("mask is not currently being used.")
+            x = mamba_layer(x)
+
+        xt = x[:, xc.shape[1]:, :]
+        return xt
+
 class TNPMambaEncoder(nn.Module):
     def __init__(
         self,
         num_layers: int,
         mhca_layer: MultiHeadCrossAttentionLayer,
         mamba_layer: MambaEncoderLayer,
+        cross_attention_dilation = False, # dilation of input embeddings for cross-attention
+        dilation_factor = 1,
     ):
         super().__init__()
 
         self.mhca_layers = _get_clones(mhca_layer, num_layers)
         self.mamba_layers = _get_clones(mamba_layer, num_layers)
+        self.ca_dilation = cross_attention_dilation
+        self.dilation_factor = dilation_factor
     
     @check_shapes(
         "xc: [m, nc, d]", "xt: [m, nt, d]", "mask: [m, nt, nc]", "return: [m, nt, d]"
@@ -85,6 +116,13 @@ class TNPMambaEncoder(nn.Module):
                 warnings.warn("mask is not currently being used.")
 
             xc = mamba_layer(xc)
-            xt = mhca_layer(xt, xc)
+
+            if self.ca_dilation:
+                nc = xc.shape[1]
+                start_index = (nc - 1) % self.dilation_factor
+                xc_dilated = xc[:, start_index::self.dilation_factor, :]
+                xt = mhca_layer(xt, xc_dilated)
+            else:
+                xt = mhca_layer(xt, xc)
 
         return xt

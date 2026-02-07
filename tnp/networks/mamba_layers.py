@@ -89,17 +89,18 @@ class MambaEncoderLayer(nn.Module):
         self.layer_idx = idx
         self.mamba_layer.layer_idx = idx
 
+
     def forward(self, x, inference_params=None):
         
         if self.norm:
-            x = self.norm_layer_1(x)
-
-        x_ssm = self.mamba_layer(x, inference_params=inference_params)
+            x_ssm = self.mamba_layer(self.norm_layer_1(x))
+        else:
+            x_ssm = self.mamba_layer(x)
 
         if self.bidirectional_mamba:
             if inference_params is not None:
                 raise NotImplementedError("Bidirectional Mamba with inference params is not implemented.")
-            x_ssm = x_ssm + self.mamba_layer_backward(x.flip(dims=[1])).flip(dims=[1])
+            x_ssm = x_ssm + self.mamba_layer_backward(self.norm_layer_1(x).flip(dims=[1])).flip(dims=[1])
 
         if self.residual:
             x = x + x_ssm

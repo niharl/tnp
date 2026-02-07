@@ -1,0 +1,5 @@
+run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
+nl442-university-of-cambridge/random-reversal-with-priming_v2/axgaty43,model-axgaty43:v50,1660418,2.272207736968994,0.022105129435658455,1.0266276597976685,0.0025718342512845993
+nl442-university-of-cambridge/random-reversal-with-priming_v2/jm4ehmwy,model-jm4ehmwy:v50,1058818,2.112717628479004,0.02345690317451954,1.0266276597976685,0.0025718342512845993
+nl442-university-of-cambridge/random-reversal-with-priming_v2/dcv0nrl7,model-dcv0nrl7:v50,1058818,1.5107378959655762,0.01579672284424305,1.0266276597976685,0.0025718342512845993
+nl442-university-of-cambridge/random-reversal-with-priming_v2/6er9vi26,model-6er9vi26:v50,1058818,1.9186692237854004,0.01929561048746109,1.0266276597976685,0.0025718342512845993

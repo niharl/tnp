@@ -1,0 +1,5 @@
+run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
+nl442-university-of-cambridge/fixed-reversal-interpolation-500-epochs/dqkoh4bh,model-dqkoh4bh:v50,1660418,-0.32578858733177185,0.027211269363760948,-0.01807652972638607,0.02740802988409996
+nl442-university-of-cambridge/fixed-reversal-interpolation-500-epochs/n6rlkxjj,model-n6rlkxjj:v50,1058818,-0.31507614254951477,0.027168679982423782,-0.01807652972638607,0.02740802988409996
+nl442-university-of-cambridge/fixed-reversal-interpolation-500-epochs/15o47u52,model-15o47u52:v50,1058818,-0.3829116225242615,0.025482485070824623,-0.01807652972638607,0.02740802988409996
+nl442-university-of-cambridge/fixed-reversal-interpolation-500-epochs/galkqv51,model-galkqv51:v50,1058818,-0.3122597634792328,0.026433363556861877,-0.01807652972638607,0.02740802988409996

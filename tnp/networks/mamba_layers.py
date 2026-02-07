@@ -18,7 +18,7 @@ class MambaEncoderLayer(nn.Module):
             self, 
             embed_dim, 
             norm=True, 
-            residual=False, # Not implemented currently
+            residual=True,
             mamba2=False, 
             enc_conv=False, # Not implemented currently 
             bidirectional_mamba=False,

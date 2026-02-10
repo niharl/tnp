@@ -533,6 +533,8 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
                     start_x = torch.full((self.batch_size,), self.reversal_point, device=xc.device)
                 target_range[:, 0] = torch.clamp(start_x, min=self.reversal_point)
             
+            target_range[:, 1] = 2 * self.reversal_point - xc[:, 0, 0]
+            
             # Sample on Right
             xt = self.sample_inputs(
                 n=nt,

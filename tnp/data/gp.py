@@ -404,8 +404,8 @@ class ReversedContextGPGenerator(RandomScaleGPGenerator):
             raise NotImplementedError("Noise can only be shared if targets are flipped contexts.")
 
         if self.sort_xs:
-            xt = xt.flip(dims=[-2])
-            yt = yt.flip(dims=[-2])
+            xt, sorted_indices = torch.sort(xt, dim=-2)
+            yt = torch.gather(yt, -2, sorted_indices)
 
         x = torch.concat([xc, xt], axis=1)
         y = torch.concat([yc, yt], axis=1)

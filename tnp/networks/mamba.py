@@ -133,7 +133,6 @@ def assign_mamba_layer_indices(root: nn.Module, start: int = 0) -> int:
 
 
 
-
 """
 A) Sequential Mamba.
 
@@ -189,6 +188,8 @@ class SequentialMambaEncoder(nn.Module):
         x = xc
         for layer in self.mamba_layers:
             x = layer(x, inference_params=inf)
+
+        inf.seqlen_offset = nc
 
         # 2) Branch to targets
         xt_flat = xt.reshape(b * nt, 1, d)  # [b*nt, 1, d]

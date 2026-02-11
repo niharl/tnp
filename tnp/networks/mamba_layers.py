@@ -93,9 +93,9 @@ class MambaEncoderLayer(nn.Module):
     def forward(self, x, inference_params=None):
         
         if self.norm:
-            x_ssm = self.mamba_layer(self.norm_layer_1(x))
+            x_ssm = self.mamba_layer(self.norm_layer_1(x), inference_params=inference_params)
         else:
-            x_ssm = self.mamba_layer(x)
+            x_ssm = self.mamba_layer(x, inference_params=inference_params)
 
         if self.bidirectional_mamba:
             if inference_params is not None:

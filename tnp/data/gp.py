@@ -502,8 +502,8 @@ class RandomReversalGPGeneratorv2(ReversedContextGPGenerator):
             yc, non_reversed_gt_pred = self.sample_outputs(x=xc)
             xt = 2 * self.reversal_point - xc.flip(dims=[-2])
             yt = yc.flip(dims=[-2])
-            xc = torch.concat([xc, xt[:, :n_priming, :]])
-            yc = torch.concat([yc, yt[:, :n_priming, :]])
+            xc = torch.concat([xc, xt[:, :n_priming, :]], axis=1)
+            yc = torch.concat([yc, yt[:, :n_priming, :]], axis=1)
             xt = xt[:, n_priming:, :]
             yt = yt[:, n_priming:, :]
 

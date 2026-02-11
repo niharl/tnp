@@ -26,7 +26,7 @@ mamba_layer:
   d_state: 128               # SSM state dimension
   block_expansion: 2         # Expansion factor (inner dim = block_expansion * embed_dim)
   d_conv: 4                  # Local convolution kernel size
-  bidirectional_mamba: True  # Use bidirectional Mamba
+  bidirectional_mamba: False  # Use bidirectional Mamba
 
 mhca_layer:
   _target_: tnp.networks.attention_layers.MultiHeadCrossAttentionLayer
@@ -56,6 +56,7 @@ z_decoder:
 
 likelihood:
   _target_: tnp.likelihoods.gaussian.HeteroscedasticNormalLikelihood
+  min_noise: 1.0e-4
 
 optimiser:
   _target_: torch.optim.AdamW
@@ -72,7 +73,7 @@ params:
 
 
 misc:
-  name: MNP-ND tests
+  name: MNP-ND (target context concat)
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 10

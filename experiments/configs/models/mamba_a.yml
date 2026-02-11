@@ -64,7 +64,7 @@ params:
   num_layers: 5
 
 misc:
-  name: "Sequential Mamba - last hidden state per target"
+  name: MNP-D (Sequential Mamba) - Random reversal point, reversal interpolation
   resume_from_checkpoint: null
   gradient_clip_val: 0.5
   plot_interval: 1

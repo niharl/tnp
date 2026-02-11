@@ -119,7 +119,7 @@ params:
   max_log10_period: 0.301
   same_targets: True
   shared_noise: True
-  bidirectional_reversal: False
+  bidirectional_reversal: True
   sort_xs: True
 
 misc:

@@ -128,7 +128,7 @@ params:
   max_log10_period: 0.301
   same_targets: False
   shared_noise: False
-  targets_only_outside_context: False
+  targets_only_outside_context: True
   context_in_targets: False
 
 misc:

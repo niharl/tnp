@@ -1,0 +1,7 @@
+model_name,run_path,checkpoint,error
+MNP-D (Sequential Mamba),nl442-university-of-cambridge/random-reversal-priming_v2_causal/luqaamwc,model-luqaamwc:v50,yaml file not found: 'experiments/configs/generators/causal_random-reversal_v2.yml'
+MNP-ND (target context concat),nl442-university-of-cambridge/random-reversal-priming_v2_causal/wqub5vqo,model-wqub5vqo:v50,yaml file not found: 'experiments/configs/generators/causal_random-reversal_v2.yml'
+TNP-L (MHSA only),nl442-university-of-cambridge/random-reversal-priming_v2_causal/t6b5u5i5,model-t6b5u5i5:v50,yaml file not found: 'experiments/configs/generators/causal_random-reversal_v2.yml'
+TNP-L (MHSA & MHCA),nl442-university-of-cambridge/random-reversal-priming_v2_causal/jbpjt8nu,model-jbpjt8nu:v50,yaml file not found: 'experiments/configs/generators/causal_random-reversal_v2.yml'
+TNP-M (Mamba encoder),nl442-university-of-cambridge/random-reversal-priming_v2_causal/l3dqhllu,model-l3dqhllu:v50,yaml file not found: 'experiments/configs/generators/causal_random-reversal_v2.yml'
+Standard TNP,nl442-university-of-cambridge/random-reversal-priming_v2_causal/brzd2pc4,model-brzd2pc4:v50,yaml file not found: 'experiments/configs/generators/causal_random-reversal_v2.yml'

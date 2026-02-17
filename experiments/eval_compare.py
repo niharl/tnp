@@ -9,18 +9,18 @@ import os
 # Import the existing initialization logic
 from tnp.utils.experiment_utils import initialize_evaluation
 
-def run_single_evaluation(run_path, checkpoint, config_path):
+def run_single_evaluation(run_path, checkpoint, config_path, model_name):
     """
     Runs the evaluation logic for a single model by manipulating sys.argv
     to mimic a command line call.
     """
-    print(f"\n{'='*20}\nEvaluating: {run_path}\nCheckpoint: {checkpoint}\n{'='*20}")
+    print(f"\n{'='*20}\nEvaluating: {model_name}\nRun: {run_path}\nCheckpoint: {checkpoint}\n{'='*20}")
 
     # 1. Save the original sys.argv
     original_argv = sys.argv[:]
 
     # 2. Mock the command line arguments for initialize_evaluation
-    # This tricks the library into thinking it was called normally for this specific model
+    # We DO NOT pass model_name here, as the external library won't recognize it.
     sys.argv = [
         "eval.py", 
         "--run_path", run_path, 
@@ -48,11 +48,10 @@ def run_single_evaluation(run_path, checkpoint, config_path):
             enable_checkpointing=False # Disable saving new checkpoints
         )
         
-        # Suppress progress bar for cleaner batch output if desired, or keep it
+        # Suppress progress bar for cleaner batch output if desired
         trainer.test(model=lit_model, dataloaders=gen_test)
 
         # 5. Extract Results
-        # Assuming lit_model.test_outputs is populated by the test loop
         test_result = {
             k: [result[k] for result in lit_model.test_outputs]
             for k in lit_model.test_outputs[0].keys()
@@ -71,8 +70,9 @@ def run_single_evaluation(run_path, checkpoint, config_path):
             mean_gt_loglik = gt_loglik.mean().item()
             std_gt_loglik = (gt_loglik.std() / (len(gt_loglik) ** 0.5)).item()
 
-        # 6. Return Data Row
+        # 6. Return Data Row (Added model_name)
         return {
+            "model_name": model_name,
             "run_path": run_path,
             "checkpoint": checkpoint,
             "num_params": num_params,
@@ -83,8 +83,9 @@ def run_single_evaluation(run_path, checkpoint, config_path):
         }
 
     except Exception as e:
-        print(f"!! Error evaluating {run_path}: {e}")
+        print(f"!! Error evaluating {model_name} ({run_path}): {e}")
         return {
+            "model_name": model_name,
             "run_path": run_path,
             "checkpoint": checkpoint,
             "error": str(e)
@@ -104,6 +105,12 @@ def main():
     # Parse arguments for the batch script
     parser = argparse.ArgumentParser(description="Batch Evaluation Script")
     
+    parser.add_argument(
+        "--model_names",
+        nargs='+',
+        required=True,
+        help="List of friendly names for the models (must match order of run_paths)"
+    )
     parser.add_argument(
         "--run_paths", 
         nargs='+', 
@@ -132,27 +139,33 @@ def main():
     args = parser.parse_args()
 
     # Input Validation
-    if len(args.run_paths) != len(args.checkpoints):
-        print(f"Error: You provided {len(args.run_paths)} run paths but {len(args.checkpoints)} checkpoints.")
+    # Ensure all lists are the same length
+    if not (len(args.run_paths) == len(args.checkpoints) == len(args.model_names)):
+        print(f"Error: Mismatch in argument lengths.")
+        print(f"Model Names: {len(args.model_names)}")
+        print(f"Run Paths:   {len(args.run_paths)}")
+        print(f"Checkpoints: {len(args.checkpoints)}")
         sys.exit(1)
 
     results = []
 
     # Loop through all models
-    for run_path, checkpoint in zip(args.run_paths, args.checkpoints):
-        result_data = run_single_evaluation(run_path, checkpoint, args.config)
+    # Added model_names to the zip loop
+    for run_path, checkpoint, model_name in zip(args.run_paths, args.checkpoints, args.model_names):
+        result_data = run_single_evaluation(run_path, checkpoint, args.config, model_name)
         results.append(result_data)
 
     # Create DataFrame and Save
     df = pd.DataFrame(results)
     
-    # Reorder columns for readability
-    cols = ["run_path", "checkpoint", "num_params", "mean_loglik", "std_loglik", "mean_gt_loglik", "std_gt_loglik"]
+    # Reorder columns for readability (Put model_name first)
+    cols = ["model_name", "run_path", "checkpoint", "num_params", "mean_loglik", "std_loglik", "mean_gt_loglik", "std_gt_loglik"]
+    
     # Add error column if it exists in data
     if "error" in df.columns:
         cols.append("error")
     
-    # Filter columns that actually exist
+    # Filter columns that actually exist (avoids KeyError if logic changes)
     cols = [c for c in cols if c in df.columns]
     df = df[cols]
 

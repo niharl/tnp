@@ -9,6 +9,7 @@ import lightning.pytorch as pl
 import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
+from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR, SequentialLR
 
 import wandb
 
@@ -208,3 +209,142 @@ def initialize_evaluation() -> DictConfig:
     )
 
     return experiment
+
+
+# pylint: disable=too-many-return-statements, too-many-statements
+def create_lr_scheduler(optimiser, experiment, train_batches):
+    """
+    Create learning rate scheduler based on experiment configuration.
+
+    Args:
+        optimiser: The optimizer instance
+        experiment: Hydra experiment config
+
+    Returns:
+        Learning rate scheduler or None if no scheduler configured
+    """
+    # Check if scheduler config exists
+    if not hasattr(experiment, "scheduler") or experiment.scheduler is None:
+        print("No scheduler configuration found, using constant learning rate")
+        return None
+
+    scheduler_config = experiment.scheduler
+    scheduler_type = getattr(scheduler_config, "type", "constant")
+
+    if scheduler_type == "constant":
+        print("Using constant learning rate (no scheduler)")
+        return None
+
+    # Calculate total training steps
+    try:
+        epochs = experiment.params.epochs
+        total_steps = epochs * train_batches
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Failed to calculate total steps: {e}")
+        return None
+
+    print(
+        f"Total training steps: {total_steps} (epochs={epochs}, batches_per_epoch={train_batches})"
+    )
+
+    # Helper function to get warmup steps
+    def get_warmup_steps():
+        if not hasattr(scheduler_config, "warmup"):
+            return 0
+
+        warmup_config = scheduler_config.warmup
+        if hasattr(warmup_config, "steps") and warmup_config.steps is not None:
+            return int(warmup_config.steps)
+        if hasattr(warmup_config, "fraction") and warmup_config.fraction is not None:
+            return int(total_steps * float(warmup_config.fraction))
+        return 0
+
+    # Helper function to get cosine parameters
+    def get_cosine_params():
+        if not hasattr(scheduler_config, "cosine"):
+            return {"eta_min": 0.0, "T_max": total_steps}
+
+        cosine_config = scheduler_config.cosine
+        eta_min = getattr(cosine_config, "eta_min", 0.0)
+        T_max = getattr(cosine_config, "T_max", None)
+        if T_max is None:
+            T_max = total_steps
+
+        return {"eta_min": eta_min, "T_max": T_max}
+
+    try:
+        if scheduler_type == "warmup":
+            warmup_steps = get_warmup_steps()
+            if warmup_steps <= 0:
+                print("Warning: warmup scheduler requested but warmup_steps <= 0")
+                return None
+
+            def warmup_lambda(current_step: int):
+                if current_step < warmup_steps:
+                    return float(current_step) / float(max(1, warmup_steps))
+                return 1.0
+
+            scheduler = LambdaLR(optimiser, warmup_lambda)
+            print(f"Created warmup scheduler: warmup_steps={warmup_steps}")
+            return scheduler
+
+        if scheduler_type == "cosine":
+            cosine_params = get_cosine_params()
+            scheduler = CosineAnnealingLR(
+                optimiser,
+                T_max=cosine_params["T_max"],
+                eta_min=cosine_params["eta_min"],
+            )
+            print(
+                f"Created cosine scheduler: T_max={cosine_params['T_max']}, eta_min={cosine_params['eta_min']}"
+            )
+            return scheduler
+
+        if scheduler_type == "warmup_cosine":
+            warmup_steps = get_warmup_steps()
+            cosine_params = get_cosine_params()
+
+            if warmup_steps <= 0:
+                print(
+                    "Warning: warmup_cosine requested but warmup_steps <= 0, using cosine only"
+                )
+                scheduler = CosineAnnealingLR(
+                    optimiser,
+                    T_max=cosine_params["T_max"],
+                    eta_min=cosine_params["eta_min"],
+                )
+                print(
+                    f"Created cosine scheduler: T_max={cosine_params['T_max']}, eta_min={cosine_params['eta_min']}"
+                )
+                return scheduler
+
+            warmup_scheduler = LambdaLR(
+                optimiser,
+                lr_lambda=lambda step: float(step) / float(max(1, warmup_steps)),
+            )
+            # Create cosine scheduler for after warmup
+            cosine_scheduler = CosineAnnealingLR(
+                optimiser,
+                T_max=cosine_params["T_max"] - warmup_steps,
+                eta_min=cosine_params["eta_min"],
+            )
+
+            # Combine with SequentialLR
+            scheduler = SequentialLR(
+                optimiser,
+                schedulers=[warmup_scheduler, cosine_scheduler],
+                milestones=[warmup_steps],
+            )
+
+            print(
+                f"Created warmup+cosine scheduler: warmup_steps={warmup_steps}, "
+                f"cosine_T_max={cosine_params['T_max'] - warmup_steps}, eta_min={cosine_params['eta_min']}"
+            )
+            return scheduler
+
+        print(f"Unknown scheduler type: {scheduler_type}")
+        return None
+
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Failed to create scheduler: {e}")
+        return None

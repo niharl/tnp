@@ -7,8 +7,12 @@ from plot import plot
 
 import wandb
 from tnp.utils.data_loading import adjust_num_batches
-from tnp.utils.experiment_utils import initialize_experiment
-from tnp.utils.lightning_utils import LitWrapper, LogPerformanceCallback, DetailedTimingCallback
+from tnp.utils.experiment_utils import create_lr_scheduler, initialize_experiment
+from tnp.utils.lightning_utils import (
+    LitWrapper,
+    LogPerformanceCallback,
+    DetailedTimingCallback,
+)
 
 
 def main():
@@ -53,6 +57,9 @@ def main():
         pin_memory=False,
     )
 
+    # Create learning rate scheduler
+    scheduler = create_lr_scheduler(optimiser, experiment, gen_train.num_batches)
+
     def plot_fn(model, batches, name):
         plot(
             model=model,
@@ -75,11 +82,15 @@ def main():
                 ckpt_file,
             )
         )
+        # Set scheduler for resumed model
+        if scheduler is not None:
+            lit_model.scheduler = scheduler
     else:
         ckpt_file = None
         lit_model = LitWrapper(
             model=model,
             optimiser=optimiser,
+            lr_scheduler=scheduler,
             loss_fn=experiment.misc.loss_fn,
             pred_fn=experiment.misc.pred_fn,
             plot_fn=plot_fn,
@@ -105,7 +116,7 @@ def main():
     else:
         logger = False
         callbacks = [metrics_callback]
-        
+
     trainer = pl.Trainer(
         logger=logger,
         max_epochs=epochs,

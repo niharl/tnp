@@ -52,6 +52,8 @@ def main():
         x_range=experiment.misc.plot_x_range,
         plot_reversal=experiment.misc.plot_reversal,
         outfolder=eval_folder,
+        plot_causal=experiment.misc.plot_causal,
+        plot_error_bars=experiment.misc.plot_error_bars,
     )
 
 

@@ -34,6 +34,8 @@ def plot(
     pred_fn: Callable = np_pred_fn,
     plot_gt: bool = True,
     plot_reversal:  bool = False,
+    plot_causal: bool = False,
+    plot_error_bars: bool = False,
     outfolder: str = "fig",
 ):
     steps = int(points_per_dim * (x_range[1] - x_range[0]))
@@ -55,14 +57,23 @@ def plot(
         batch.yt = yt
 
         plot_batch = copy.deepcopy(batch)
-        plot_batch.xt = x_plot
+        if plot_causal and isinstance(plot_batch, SyntheticBatch):
+            if plot_batch.gt_pred is not None and hasattr(plot_batch.gt_pred, 'reversal_point'):
+                assert isinstance(plot_batch.gt_pred, ReversedGPGroundTruthPredictor)
+                reversal_point = plot_batch.gt_pred.reversal_point
+                mask = x_plot[0, :, 0] >= reversal_point
+                plot_batch.xt = x_plot[:, mask, :]
+            else:
+                plot_batch.xt = x_plot
+                print("Warning: plot_causal is True but batch.gt_pred does not have a reversal_point attribute. Plotting all target points.")
+        else:
+            plot_batch.xt = x_plot
 
         with torch.no_grad():
             y_plot_pred_dist = pred_fn(model, plot_batch)
             yt_pred_dist = pred_fn(model, batch)
 
         model_nll = -yt_pred_dist.log_prob(yt).sum() / batch.yt[..., 0].numel()
-        mean, std = y_plot_pred_dist.mean, y_plot_pred_dist.stddev
 
         # Make figure for plotting
         fig = plt.figure(figsize=figsize)
@@ -84,22 +95,39 @@ def plot(
             s=30,
         )
 
-        # Plot model predictions
-        plt.plot(
-            x_plot[0, :, 0].cpu(),
-            mean[0, :, 0].cpu(),
-            c="tab:blue",
-            lw=3,
-        )
+        if plot_error_bars:
+            mean, std = yt_pred_dist.mean, yt_pred_dist.stddev
+            # Plot box + whisker style error bars (Mean +/- 2 StdDev)
+            plt.errorbar(
+                xt[0, :, 0].cpu(),
+                mean[0, :, 0].cpu(),
+                yerr=2.0 * std[0, :, 0].cpu(),
+                fmt='o',         # distinct markers
+                ls='none',       # no line connecting them
+                color="tab:blue",
+                ecolor="tab:blue",
+                capsize=4,       # caps on the error bars
+                label="Model",
+                alpha=0.6
+            )
+        else:
+            mean, std = y_plot_pred_dist.mean, y_plot_pred_dist.stddev
+            # Plot standard continuous line + filled uncertainty
+            plt.plot(
+                plot_batch.xt[0, :, 0].cpu(),
+                mean[0, :, 0].cpu(),
+                c="tab:blue",
+                lw=3,
+            )
 
-        plt.fill_between(
-            x_plot[0, :, 0].cpu(),
-            mean[0, :, 0].cpu() - 2.0 * std[0, :, 0].cpu(),
-            mean[0, :, 0].cpu() + 2.0 * std[0, :, 0].cpu(),
-            color="tab:blue",
-            alpha=0.2,
-            label="Model",
-        )
+            plt.fill_between(
+                plot_batch.xt[0, :, 0].cpu(),
+                mean[0, :, 0].cpu() - 2.0 * std[0, :, 0].cpu(),
+                mean[0, :, 0].cpu() + 2.0 * std[0, :, 0].cpu(),
+                color="tab:blue",
+                alpha=0.2,
+                label="Model",
+            )
 
         title_str = f"$NC = {xc.shape[1]}$ $NT = {xt.shape[1]}$ NLL = {model_nll:.3f}"
 
@@ -109,7 +137,7 @@ def plot(
                     gt_mean, gt_std, _ = batch.gt_pred(
                         xc=xc,
                         yc=yc,
-                        xt=x_plot,
+                        xt=plot_batch.xt,
                     )
                     _, _, gt_loglik = batch.gt_pred(
                         xc=xc,
@@ -124,7 +152,7 @@ def plot(
 
                 # Plot ground truth
                 plt.plot(
-                    x_plot[0, :, 0].cpu(),
+                    plot_batch.xt[0, :, 0].cpu(),
                     gt_mean[0, :].cpu(),
                     "--",
                     color="tab:purple",
@@ -132,7 +160,7 @@ def plot(
                 )
 
                 plt.plot(
-                    x_plot[0, :, 0].cpu(),
+                    plot_batch.xt[0, :, 0].cpu(),
                     gt_mean[0, :].cpu() + 2 * gt_std[0, :].cpu(),
                     "--",
                     color="tab:purple",
@@ -140,7 +168,7 @@ def plot(
                 )
 
                 plt.plot(
-                    x_plot[0, :, 0].cpu(),
+                    plot_batch.xt[0, :, 0].cpu(),
                     gt_mean[0, :].cpu() - 2 * gt_std[0, :].cpu(),
                     "--",
                     color="tab:purple",

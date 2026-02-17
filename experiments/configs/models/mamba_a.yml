@@ -50,6 +50,7 @@ z_decoder:
 
 likelihood:
   _target_: tnp.likelihoods.gaussian.HeteroscedasticNormalLikelihood
+  min_noise: 1.0e-4
 
 optimiser:
   _target_: torch.optim.AdamW

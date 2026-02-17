@@ -66,13 +66,13 @@ generators:
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
     priming_frac_range: [0, 1.0]
-    samples_per_epoch: 4096
+    samples_per_epoch: 80_000
     batch_size: 8
     deterministic: True
-    same_targets: False
-    shared_noise: False
+    same_targets: ${params.same_targets}
+    shared_noise: ${params.shared_noise}
     targets_only_outside_context: ${params.targets_only_outside_context}
-    context_in_targets: False
+    context_in_targets: ${params.context_in_targets}
 
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -134,7 +134,7 @@ params:
 misc:
   project: random-reversal-priming_v5_causal
   eval_name: eval
-  eval_folder: eval
+  eval_folder: eval_error_bars
   seed: 1
   only_plots: True
   num_plots: 20
@@ -145,4 +145,6 @@ misc:
   plot_reversal: True
   plot_interval: 1
   check_val_every_n_epoch: 10
-  plot_x_range: [-4.0, 4.0]
+  plot_x_range: [-4.0, 5.0]
+  plot_causal: True
+  plot_error_bars: True

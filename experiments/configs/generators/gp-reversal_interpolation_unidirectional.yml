@@ -60,12 +60,12 @@ generators:
     max_nt: 64
     context_range: ${params.context_range}
     target_range: ${params.target_range}
-    samples_per_epoch: 4096
+    samples_per_epoch: 80_000
     batch_size: 8
     deterministic: True
     same_targets: ${params.same_targets}
     shared_noise: ${params.shared_noise}
-    bidirectional_reversal: False
+    bidirectional_reversal: ${params.bidirectional_reversal}
     sort_xs: ${params.sort_xs}
 rbf_kernel:
   _target_: tnp.networks.gp.RBFKernel
@@ -125,7 +125,7 @@ params:
 misc:
   project: fixed-reversal-interpolation-causal
   eval_name: eval
-  eval_folder: eval
+  eval_folder: eval_error_bars
   seed: 1
   only_plots: True
   num_plots: 20
@@ -137,3 +137,5 @@ misc:
   plot_gt: True
   plot_reversal: False
   plot_x_range: [-4.0, 4.0]
+  plot_causal: True
+  plot_error_bars: True

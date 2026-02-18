@@ -12,6 +12,7 @@ from tnp.utils.lightning_utils import (
     LitWrapper,
     LogPerformanceCallback,
     DetailedTimingCallback,
+    PostRunCleanupCallback,
 )
 
 
@@ -105,14 +106,38 @@ def main():
             project=experiment.misc.project,
             name=experiment.misc.name,
             config=OmegaConf.to_container(experiment.config),
-            log_model="all",
+            log_model=False,
         )
-        checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        run_id = logger.experiment.id
+        best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
+            dirpath=f"checkpoints/{run_id}",
+            filename="best",
+            monitor="val/loglik",
+            mode="max",
+            save_top_k=1,
+            save_last=False,
+            every_n_epochs=1,
+        )
+        periodic_checkpoint_callback = pl.callbacks.ModelCheckpoint(
+            dirpath=f"checkpoints/{run_id}",
+            filename="last",
+            monitor=None,
+            save_top_k=1,
             every_n_epochs=experiment.misc.checkpoint_interval,
-            save_last=True,
+            save_last=False,
+        )
+        wandb_cleanup_callback = PostRunCleanupCallback(
+            best_ckpt=best_checkpoint_callback,
+            periodic_ckpt=periodic_checkpoint_callback,
         )
         performance_callback = LogPerformanceCallback()
-        callbacks = [checkpoint_callback, performance_callback, metrics_callback]
+        callbacks = [
+            best_checkpoint_callback,
+            periodic_checkpoint_callback,
+            wandb_cleanup_callback,
+            performance_callback,
+            metrics_callback,
+        ]
     else:
         logger = False
         callbacks = [metrics_callback]

@@ -1,11 +1,14 @@
 import dataclasses
+import os
 import time
 from typing import Any, Callable, List, Optional
 
 import lightning.pytorch as pl
+import re
 import torch
 from torch import nn
 from lightning.pytorch.callbacks import Callback
+import wandb
 
 from ..data.base import Batch
 from .np_functions import np_loss_fn, np_pred_fn
@@ -253,6 +256,90 @@ class LogPerformanceCallback(pl.Callback):
             on_epoch=False,
         )
         self.between_step_time = time.time()
+
+
+class PostRunCleanupCallback(pl.Callback):
+    def __init__(self, best_ckpt, periodic_ckpt):
+        self.best_ckpt = best_ckpt
+        self.periodic_ckpt = periodic_ckpt
+        self.last_best_score = None
+        # Keep track of artifact names we create so we know what to clean later
+        self.artifact_names = set()
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        # --- 1. Upload BEST (If improved) ---
+        current_score = self.best_ckpt.best_model_score
+        best_path = self.best_ckpt.best_model_path
+
+        if current_score is not None and current_score != self.last_best_score:
+            if os.path.exists(best_path):
+                self.last_best_score = current_score
+                self._upload_only(
+                    path=best_path,
+                    name_suffix="best",
+                    metadata={
+                        "score": float(current_score),
+                        "epoch": trainer.current_epoch,
+                    },
+                )
+
+        # --- 2. Upload PERIODIC (If interval met) ---
+        if (trainer.current_epoch + 1) % self.periodic_ckpt.every_n_epochs == 0:
+            periodic_path = os.path.join(
+                self.periodic_ckpt.dirpath, f"{self.periodic_ckpt.filename}.ckpt"
+            )
+            if os.path.exists(periodic_path):
+                self._upload_only(
+                    path=periodic_path,
+                    name_suffix="last",
+                    metadata={"epoch": trainer.current_epoch},
+                )
+
+    def on_fit_end(self, trainer, pl_module):
+        """
+        Called when training finishes. This is safe to run because
+        dataloaders are dead and file locks should be released.
+        """
+        print("\n🧹 Training finished. Cleaning up old WandB artifact versions...")
+        for name in self.artifact_names:
+            self._cleanup_versions(name)
+
+    def _upload_only(self, path, name_suffix, metadata):
+        """Just uploads. Does NOT delete anything."""
+        # Sanitize name
+        raw_name = wandb.run.name if wandb.run.name else wandb.run.id
+        clean_name = re.sub(r"[^a-zA-Z0-9_\-.]", "_", raw_name)
+        artifact_name = (
+            f"model-{wandb.run.id}-{name_suffix}"  # Use run ID for uniqueness
+        )
+
+        # Track name for end-of-run cleanup
+        self.artifact_names.add(artifact_name)
+
+        # Create and Log (W&B automatically makes this v0, v1, v2...)
+        artifact = wandb.Artifact(name=artifact_name, type="model", metadata=metadata)
+        artifact.add_file(path)
+        wandb.log_artifact(artifact, aliases=["latest", name_suffix])
+
+    def _cleanup_versions(self, artifact_name):
+        """Deletes all versions except the one tagged 'latest'."""
+        try:
+            api = wandb.Api(
+                overrides={"project": wandb.run.project, "entity": wandb.run.entity}
+            )
+            versions = api.artifact_versions("model", artifact_name)
+
+            print(f"   Checking versions for: {artifact_name}")
+            for v in versions:
+                # If it's not the latest, delete it.
+                if "latest" not in v.aliases:
+                    print(f"   ❌ Deleting old version {v.version}")
+                    v.delete()
+                else:
+                    print(f"   ✅ Keeping version {v.version} (latest)")
+
+        except Exception as e:
+            print(f"   ⚠️ Cleanup failed for {artifact_name}: {e}")
 
 
 class DetailedTimingCallback(Callback):

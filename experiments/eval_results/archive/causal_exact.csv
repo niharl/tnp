@@ -1,0 +1,7 @@
+model_name,run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
+Standard TNP,nl442-university-of-cambridge/fixed-reversal-exact-causal/hbslmxul,model-hbslmxul:v50,1058818,2.3970541954040527,0.004462795797735453,1.013590931892395,0.0003095102438237518
+TNP-L (MHSA & MHCA),nl442-university-of-cambridge/fixed-reversal-exact-causal/1c7fejit,model-1c7fejit:v50,1058818,1.9743261337280273,0.12093795835971832,1.013590931892395,0.0003095102438237518
+TNP-L (MHSA only),nl442-university-of-cambridge/fixed-reversal-exact-causal/gdrumlrx,model-gdrumlrx:v50,1058818,2.2690165042877197,0.006419513840228319,1.013590931892395,0.0003095102438237518
+TNP-M (Mamba encoder),nl442-university-of-cambridge/fixed-reversal-exact-causal/4tdy03w0,model-4tdy03w0:v50,1660418,2.353228807449341,0.09766378253698349,1.013590931892395,0.0003095102438237518
+MNP-D (Sequential Mamba),nl442-university-of-cambridge/fixed-reversal-exact-causal/fv041bbz,model-fv041bbz:v50,1164418,2.498281478881836,0.008798040449619293,1.013590931892395,0.0003095102438237518
+MNP-ND (target context concat),nl442-university-of-cambridge/fixed-reversal-exact-causal/5ta6eqbm,model-5ta6eqbm:v50,1164418,3.0112414360046387,0.00849677249789238,1.013590931892395,0.0003095102438237518

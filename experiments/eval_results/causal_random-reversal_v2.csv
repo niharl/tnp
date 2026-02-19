@@ -1,7 +1,7 @@
 model_name,run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
-MNP-D (Sequential Mamba),nl442-university-of-cambridge/random-reversal-priming_v2_causal/luqaamwc,model-luqaamwc:v50,1164418,0.9556740522384644,0.011629906482994556,0.986442506313324,0.0005730216507799923
-MNP-ND (target context concat),nl442-university-of-cambridge/random-reversal-priming_v2_causal/wqub5vqo,model-wqub5vqo:v50,1164418,2.5289669036865234,0.038970306515693665,0.986442506313324,0.0005730216507799923
-TNP-L (MHSA only),nl442-university-of-cambridge/random-reversal-priming_v2_causal/t6b5u5i5,model-t6b5u5i5:v50,1058818,-1.5640332698822021,0.03235999494791031,0.986442506313324,0.0005730216507799923
-TNP-L (MHSA & MHCA),nl442-university-of-cambridge/random-reversal-priming_v2_causal/jbpjt8nu,model-jbpjt8nu:v50,1058818,0.5037078857421875,0.02688770554959774,0.986442506313324,0.0005730216507799923
-TNP-M (Mamba encoder),nl442-university-of-cambridge/random-reversal-priming_v2_causal/l3dqhllu,model-l3dqhllu:v50,1660418,1.3966132402420044,0.059105247259140015,0.986442506313324,0.0005730216507799923
-Standard TNP,nl442-university-of-cambridge/random-reversal-priming_v2_causal/brzd2pc4,model-brzd2pc4:v50,1058818,0.6062648296356201,0.01095517072826624,0.986442506313324,0.0005730216507799923
+MNP-D (Sequential Mamba),nl442-university-of-cambridge/random-reversal-priming_v2_causal/luqaamwc,model-luqaamwc:v43,1164418,0.9963879585266113,0.01289938110858202,0.986442506313324,0.0005730216507799923
+MNP-ND (target context concat),nl442-university-of-cambridge/random-reversal-priming_v2_causal/wqub5vqo,model-wqub5vqo:v38,1164418,3.089536428451538,0.082603819668293,0.986442506313324,0.0005730216507799923
+TNP-L (MHSA only),nl442-university-of-cambridge/random-reversal-priming_v2_causal/t6b5u5i5,model-t6b5u5i5:v49,1058818,0.8513573408126831,0.020096462219953537,0.986442506313324,0.0005730216507799923
+TNP-L (MHSA & MHCA),nl442-university-of-cambridge/random-reversal-priming_v2_causal/jbpjt8nu,model-jbpjt8nu:v43,1058818,0.7507818937301636,0.016838889569044113,0.986442506313324,0.0005730216507799923
+TNP-M (Mamba encoder),nl442-university-of-cambridge/random-reversal-priming_v2_causal/l3dqhllu,model-l3dqhllu:v37,1660418,1.3526586294174194,0.06244446709752083,0.986442506313324,0.0005730216507799923
+Standard TNP,nl442-university-of-cambridge/random-reversal-priming_v2_causal/brzd2pc4,model-brzd2pc4:v34,1058818,1.1104776859283447,0.02637271210551262,0.986442506313324,0.0005730216507799923

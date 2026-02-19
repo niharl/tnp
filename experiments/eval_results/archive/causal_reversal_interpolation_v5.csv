@@ -1,0 +1,7 @@
+model_name,run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
+Standard TNP,nl442-university-of-cambridge/random-reversal-priming_v5_causal/rbeu9bgd,model-rbeu9bgd:v50,1058818,-0.24420878291130066,0.005666270386427641,0.4595383405685425,0.004006889183074236
+Standard TNP (attempt 2),nl442-university-of-cambridge/random-reversal-priming_v5_causal/hs5lj6sd,model-hs5lj6sd:v50,1058818,-0.17166109383106232,0.0075175585225224495,0.4595383405685425,0.004006889183074236
+TNP-L (MHSA & MHCA),nl442-university-of-cambridge/random-reversal-priming_v5_causal/5k40nfqi,model-5k40nfqi:v50,1058818,-0.233108788728714,0.006948549300432205,0.4595383405685425,0.004006889183074236
+TNP-L (MHSA only),nl442-university-of-cambridge/random-reversal-priming_v5_causal/oqe7utsy,model-oqe7utsy:v50,1058818,-0.1727171540260315,0.007280495949089527,0.4595383405685425,0.004006889183074236
+TNP-M (Mamba encoder),nl442-university-of-cambridge/random-reversal-priming_v5_causal/947ytfkb,model-947ytfkb:v50,1660418,0.1195974349975586,0.004966418258845806,0.4595383405685425,0.004006889183074236
+MNP-ND (target context concat),nl442-university-of-cambridge/random-reversal-priming_v5_causal/hmkbcacp,model-hmkbcacp:v50,1164418,-0.0038284657057374716,0.005152985919266939,0.4595383405685425,0.004006889183074236

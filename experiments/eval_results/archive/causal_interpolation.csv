@@ -1,0 +1,8 @@
+model_name,run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
+Standard TNP,nl442-university-of-cambridge/fixed-reversal-interpolation-causal/dhk2tws3,model-dhk2tws3:v50,1058818,-0.3460247218608856,0.005978467408567667,-0.00797940231859684,0.006290321238338947
+TNP-L (MHSA & MHCA),nl442-university-of-cambridge/fixed-reversal-interpolation-causal/ua50fhlv,model-ua50fhlv:v50,1058818,-0.37134718894958496,0.006000256631523371,-0.00797940231859684,0.006290321238338947
+TNP-L (MHSA only),nl442-university-of-cambridge/fixed-reversal-interpolation-causal/p10a8r77,model-p10a8r77:v50,1058818,-0.2795962989330292,0.006311169825494289,-0.00797940231859684,0.006290321238338947
+TNP-M (Mamba encoder),nl442-university-of-cambridge/fixed-reversal-interpolation-causal/7zic1oxd,model-7zic1oxd:v50,1660418,-0.27528631687164307,0.006076857913285494,-0.00797940231859684,0.006290321238338947
+MNP-D (Sequential Mamba),nl442-university-of-cambridge/fixed-reversal-interpolation-causal/faqs7slh,model-faqs7slh:v50,1164418,-0.2931487560272217,0.006161358207464218,-0.00797940231859684,0.006290321238338947
+MNP-ND (target context concat),nl442-university-of-cambridge/fixed-reversal-interpolation-causal/zjv5yymr,model-zjv5yymr:v50,1164418,-0.375986248254776,0.00572155462577939,-0.00797940231859684,0.006290321238338947
+MNP-ND (improper xt sorting),nl442-university-of-cambridge/fixed-reversal-interpolation-causal/0admhzbd,model-0admhzbd:v50,1164418,-0.3275817930698395,0.005972512997686863,-0.00797940231859684,0.006290321238338947

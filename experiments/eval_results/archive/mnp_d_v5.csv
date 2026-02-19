@@ -1,0 +1,2 @@
+model_name,run_path,checkpoint,num_params,mean_loglik,std_loglik,mean_gt_loglik,std_gt_loglik
+MNP-D (Sequential Mamba),nl442-university-of-cambridge/random-reversal-priming_v5_causal/oln4ivyk,model-oln4ivyk:v50,1164418,-0.2200862318277359,0.006276492960751057,0.4595383405685425,0.004006889183074236

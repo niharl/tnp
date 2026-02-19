@@ -1,0 +1,50 @@
+models:
+  - name: "Standard TNP"
+    run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/hbslmxul"
+    checkpoint: "model-hbslmxul:v49"
+    config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
+
+  - name: "TNP-L (MHSA & MHCA)"
+    run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/1c7fejit"
+    checkpoint: "model-1c7fejit:v36"
+    config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
+
+  - name: "TNP-L (MHSA only)"
+    run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/gdrumlrx"
+    checkpoint: "model-gdrumlrx:v17"
+    config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
+
+  - name: "TNP-M (Mamba encoder)"
+    run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/4tdy03w0"
+    checkpoint: "model-4tdy03w0:v44"
+    config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
+
+  - name: "MNP-D (Sequential Mamba)"
+    run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/fv041bbz"
+    checkpoint: "model-fv041bbz:v43"
+    config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
+
+  - name: "MNP-ND (target context concat)"
+    run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/5ta6eqbm"
+    checkpoint: "model-5ta6eqbm:v48"
+    config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
+
+# Range of Context Points (NC) to benchmark
+context_target:
+  start: 1000
+  end: 10_000
+  step: 1000
+
+# Fixed number of Target Points (NT)
+target_points: 10
+
+benchmark_settings:
+  num_batches: 3  # Number of batches to average speed over
+  
+  # Overrides to enforce specific NC/NT during inference
+  overrides_format:
+    - "generators.test.min_nc={nc}"
+    - "generators.test.max_nc={nc}"
+    - "generators.test.min_nt={nt}"
+    - "generators.test.max_nt={nt}"
+    - "generators.test.batch_size=1"

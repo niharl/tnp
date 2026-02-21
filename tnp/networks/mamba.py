@@ -303,7 +303,7 @@ class SequentialMambaEncoder(nn.Module):
     
     def create_inc_structs(self, max_seqlen: int = 1024, max_batch_size: int = 1024) -> dict:
         """Initialise the cache for incremental inference
-        Need to consider how max_seqlen and max_batch_size should be set"""
+        Note max_seqlen and max_batch_size are currently not used (by us or by mamba_ssm)"""
         return {"mamba_cache": create_inference_params_cache(max_seqlen=max_seqlen, max_batch_size=max_batch_size)}
 
     @torch.no_grad()

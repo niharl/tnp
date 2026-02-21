@@ -171,6 +171,8 @@ def linear_attention(
     v: torch.Tensor,
     attn_mask: Optional[torch.Tensor],
     scale: float = 1.0,
+    use_cache: bool = False,
+    cache: Optional[dict] = None,
 ):
     if attn_mask is not None:
         # TODO: What is going on here.
@@ -181,7 +183,17 @@ def linear_attention(
     q = q * scale
 
     kv = k.transpose(-1, -2) @ v
+
+    if use_cache and cache is not None:
+        kv += cache["KV"]
+        q = torch.cat([cache["Q"], q], dim=-2)
+
     out = q @ kv
+
+    if use_cache:
+        cache_dict = {"KV": kv, "Q": q}
+        return out, cache_dict
+    
     return out
 
 @check_shapes(
@@ -196,6 +208,8 @@ def linear_attention_v2(
     attn_mask: Optional[torch.Tensor] = None,
     scale: float = 1.0,
     eps: float = 1e-6,
+    use_cache: bool = False,
+    cache: Optional[dict] = None,
 ):
     """
     Computes Linear Attention using the Katharopoulos method (ELU+1).
@@ -220,11 +234,16 @@ def linear_attention_v2(
     # shape: [m, h, d, dv]
     # This is the O(Nc) step.
     KV = torch.matmul(K.transpose(-1, -2), v)
-    
+
     # 4. Compute the Normaliser (The Denominator)
     # shape: [m, h, d]
     # We sum K over the sequence length.
     Z = K.sum(dim=-2) 
+
+    if use_cache and cache is not None:
+        KV += cache["KV"]
+        Z += cache["Z"]
+        Q = torch.cat([cache["Q"], Q], dim=-2)
     
     # 5. Compute Output (The O(Nt) step)
     # Numerator: Q @ KV -> [m, h, nq, dv]
@@ -234,5 +253,9 @@ def linear_attention_v2(
     # Explicit element-wise mul + sum
     # [m, h, nq, d] * [m, h, 1, d] -> sum(-1) -> [m, h, nq, 1]
     denominator = torch.sum(Q * Z.unsqueeze(-2), dim=-1, keepdim=True)
+
+    if use_cache:
+        cache_dict = {"KV": KV, "Z": Z, "Q": Q}
+        return numerator / (denominator + eps), cache_dict
 
     return numerator / (denominator + eps)

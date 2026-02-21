@@ -8,7 +8,7 @@ from ..networks.transformer import ISTEncoder, PerceiverEncoder, TNPTransformerE
 from ..networks.mamba import MNPNDMambaEncoder, TNPMambaEncoder
 from ..utils.helpers import preprocess_observations
 from .base import ConditionalNeuralProcess
-
+from .incUpdateBase import IncUpdateEff
 
 class TNPDecoder(nn.Module):
     def __init__(
@@ -72,7 +72,7 @@ class TNPEncoder(nn.Module):
         return zt
 
 
-class TNP(ConditionalNeuralProcess):
+class TNP(ConditionalNeuralProcess, IncUpdateEff):
     def __init__(
         self,
         encoder: TNPEncoder,
@@ -80,3 +80,16 @@ class TNP(ConditionalNeuralProcess):
         likelihood: nn.Module,
     ):
         super().__init__(encoder, decoder, likelihood)
+
+    # Initialise the incremental update cache
+    def init_inc_structs(self):
+        self.inc_cache = self.encoder.transformer_encoder.create_inc_structs()
+
+    # Update the context and cache with new observations
+    def update_ctx(self, xc: torch.Tensor, yc: torch.Tensor):
+        self.encoder.transformer_encoder.update_ctx(xc, yc, self.inc_cache)
+
+    # Query the model at new target points, using the cache
+    def query(self, xt: torch.Tensor):
+        zt = self.encoder.transformer_encoder.query(xt, self.inc_cache)
+        return self.likelihood(self.decoder(zt, xt))

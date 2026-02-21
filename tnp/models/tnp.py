@@ -6,7 +6,7 @@ from torch import nn
 
 from ..networks.transformer import ISTEncoder, PerceiverEncoder, TNPTransformerEncoder
 from ..networks.mamba import MNPNDMambaEncoder, TNPMambaEncoder
-from ..utils.helpers import preprocess_observations
+from ..utils.helpers import preprocess_contexts, preprocess_observations, preprocess_targets
 from .base import ConditionalNeuralProcess
 from .incUpdateBase import IncUpdateEff
 
@@ -70,7 +70,33 @@ class TNPEncoder(nn.Module):
 
         zt = self.transformer_encoder(zc, zt)
         return zt
+    
+    @torch.no_grad()
+    @check_shapes(
+        "xc: [m, nc, dx]", "yc: [m, nc, dy]"
+    )
+    def update_ctx(self, xc: torch.Tensor, yc: torch.Tensor, inc_cache: dict):
+        yc = preprocess_contexts(yc)
+        xc_encoded = self.x_encoder(xc)
+        yc_encoded = self.y_encoder(yc)
+        zc = torch.cat((xc_encoded, yc_encoded), dim=-1)
+        zc = self.xy_encoder(zc)
+        self.transformer_encoder.update_ctx(zc, inc_cache)
 
+    @torch.no_grad()
+    @check_shapes(
+        "xt: [m, nt, dx]", "return: [m, nt, dz]"
+    )
+    def query(self, xt: torch.Tensor, inc_cache: dict) -> torch.Tensor:
+        xt_encoded = self.x_encoder(xt)
+        dim_y = inc_cache.get('dim_y', (0,))
+        yt = preprocess_targets(xt, dim_y)
+        yt_encoded = self.y_encoder(yt)
+        zt = torch.cat((xt_encoded, yt_encoded), dim=-1)
+        zt = self.xy_encoder(zt)
+        zt = self.transformer_encoder.query(zt, inc_cache)
+        return zt
+    
 
 class TNP(ConditionalNeuralProcess, IncUpdateEff):
     def __init__(
@@ -87,9 +113,10 @@ class TNP(ConditionalNeuralProcess, IncUpdateEff):
 
     # Update the context and cache with new observations
     def update_ctx(self, xc: torch.Tensor, yc: torch.Tensor):
-        self.encoder.transformer_encoder.update_ctx(xc, yc, self.inc_cache)
+        self.encoder.update_ctx(xc, yc, self.inc_cache)
+        self.inc_cache['dim_y'] = yc.shape[-1:]
 
     # Query the model at new target points, using the cache
     def query(self, xt: torch.Tensor):
-        zt = self.encoder.transformer_encoder.query(xt, self.inc_cache)
-        return self.likelihood(self.decoder(zt, xt))
+        zt = self.encoder.query(xt, self.inc_cache)
+        return self.likelihood(self.decoder(zt))

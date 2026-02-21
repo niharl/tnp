@@ -14,3 +14,19 @@ def preprocess_observations(
     yt = torch.cat((yt, torch.ones(yt.shape[:-1] + (1,)).to(yt)), dim=-1)
 
     return yc, yt
+
+@check_shapes("xc: [m, nc, dx]", "yc: [m, nc, dy]")
+def preprocess_contexts(
+    yc: torch.Tensor
+ ) -> torch.Tensor:
+    yc = torch.cat((yc, torch.zeros(yc.shape[:-1] + (1,)).to(yc)), dim=-1)
+    return yc
+
+@check_shapes("xt: [m, nt, dx]", "return: [m, nt, dy]")
+def preprocess_targets(
+    xt: torch.Tensor,
+    dim_y: Tuple[int]
+) -> torch.Tensor:
+    yt = torch.zeros(xt.shape[:-1] + dim_y).to(xt)
+    yt = torch.cat((yt, torch.ones(yt.shape[:-1] + (1,)).to(yt)), dim=-1)
+    return yt

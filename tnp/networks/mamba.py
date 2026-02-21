@@ -299,3 +299,44 @@ class SequentialMambaEncoder(nn.Module):
         if (not self.training) and (not torch.is_grad_enabled()):
             return self._forward_cached_inference(xc, xt)
         return self._forward_train(xc, xt)
+
+    
+    def create_inc_structs(self, max_seqlen: int = 1024, max_batch_size: int = 1024) -> dict:
+        """Initialise the cache for incremental inference
+        Need to consider how max_seqlen and max_batch_size should be set"""
+        return {"mamba_cache": create_inference_params_cache(max_seqlen=max_seqlen, max_batch_size=max_batch_size)}
+
+    @torch.no_grad()
+    @check_shapes(
+        "xc: [m, nc, d]"
+    )
+    def update_ctx(self, xc: torch.Tensor, inc_cache: dict):
+        """
+        Update context cache with new context xc.
+        """
+        inf_params = inc_cache["mamba_cache"]
+        for mamba_layer in self.mamba_layers:
+            xc = mamba_layer(xc, inference_params=inf_params)
+        inf_params.seqlen_offset += xc.shape[1]
+
+    @torch.no_grad()
+    @check_shapes(
+        "xt: [b, nt, d]", "return: [b, nt, d]"
+    )
+    def query(self, xt: torch.Tensor, inc_cache: dict) -> torch.Tensor:
+        """
+        Query the model with targets xt, using the cached context.
+        Do not update the cache in this step.
+        """
+        inf = inc_cache["mamba_cache"]
+        b, nt, d = xt.shape
+
+        xt_flat = xt.reshape(b * nt, 1, d)  # [b*nt, 1, d]
+        inf_tiled = tile_inference_params(inf, repeats=nt, new_max_batch=b * nt)
+
+        y = xt_flat
+        for layer in self.mamba_layers:
+            y = layer(y, inference_params=inf_tiled)
+
+        # y: [b*nt, 1, d] -> [b, nt, d]
+        return y[:, 0, :].reshape(b, nt, d)

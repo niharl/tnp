@@ -13,6 +13,7 @@ from .attention_layers import (
     MultiHeadKRAttentionLayer,
     MultiHeadSelfAttentionLayer,
 )
+from .cache_utils import update_ctx_cache
 
 
 class TransformerEncoder(nn.Module):
@@ -71,7 +72,53 @@ class TNPTransformerEncoder(nn.Module):
             xt = mhca_layer(xt, xc)
 
         return xt
+    
+    def create_inc_structs(self):
+        linear_mhsa = getattr(self.mhsa_layers[0], 'linear', False)
+        if linear_mhsa:
+            return {"context_cache": {}, "lin_mhsa_cache": {}}
+        else:
+            return {"context_cache": {}}
+    
+    @torch.no_grad()
+    @check_shapes(
+        "xc: [m, nc, d]"
+    )
+    def update_ctx(self, xc_new: torch.Tensor, inc_cache: dict):
+        """
+        Update context cache with new context xc.  
+        """
+        context_cache = inc_cache['context_cache']
+        input_layer_tag = f"layer_0_sa"
+        update_ctx_cache(xc_new, context_cache, input_layer_tag)
+        xc = context_cache.get(input_layer_tag, None)
 
+        for i, mhsa_layer in enumerate(self.mhsa_layers):
+            if isinstance(mhsa_layer, MultiHeadSelfAttentionLayer):
+                xc = mhsa_layer(xc)
+            elif isinstance(mhsa_layer, MultiHeadCrossAttentionLayer):
+                xc = mhsa_layer(xc, xc)
+            else:
+                raise TypeError("Unknown layer type.")
+            layer_tag = f"layer_{i+1}_sa"
+            context_cache[layer_tag] = xc
+    
+    @torch.no_grad()
+    @check_shapes(
+        "xt: [b, nt, d]", "return: [b, nt, d]"
+    )
+    def query(self, xt: torch.Tensor, inc_cache: dict) -> torch.Tensor:
+        """
+        Query the model with targets xt, using the cached context.
+        Do not update the cache in this step.
+        """
+        context_cache = inc_cache['context_cache']
+        for i, mhca_layer in enumerate(self.mhca_layers):
+            layer_tag = f"layer_{i+1}_sa"
+            xc = context_cache.get(layer_tag, None)
+            xt = mhca_layer(xt, xc)
+
+        return xt
 
 class TNPKRTransformerEncoder(nn.Module):
     def __init__(

@@ -1,3 +1,6 @@
+experiment:
+  script: "experiments/benchmark_inference.py"
+
 models:
   - name: "Standard TNP"
     run_path: "nl442-university-of-cambridge/fixed-reversal-exact-causal/hbslmxul"
@@ -29,22 +32,22 @@ models:
     checkpoint: "model-5ta6eqbm:v48"
     config: "experiments/configs/generators/gp-reversal_exact_unidirectional.yml"
 
-# Range of Context Points (NC) to benchmark
 context_target:
   start: 1000
-  end: 10_000
+  end: 10000
   step: 1000
 
-# Fixed number of Target Points (NT)
-target_points: 10
-
 benchmark_settings:
-  num_batches: 3  # Number of batches to average speed over
-  
-  # Overrides to enforce specific NC/NT during inference
-  overrides_format:
-    - "generators.test.min_nc={nc}"
-    - "generators.test.max_nc={nc}"
-    - "generators.test.min_nt={nt}"
-    - "generators.test.max_nt={nt}"
-    - "generators.test.batch_size=1"
+  batch_size: 1             # Inference is usually timed with batch size 1
+  batches_to_measure: 50    # How many batches to average the speed over
+
+loader_params:
+  params:
+    dim_x: 1
+    dim_y: 1
+    nt: 100                 # Target points
+  misc:
+    # IMPORTANT: Ensure this points to the exact folder where your HDF5 files are saved
+    gp_folder: "experiments/datasets/nc_10_000_2000_batches_reversed" 
+    save_path: "experiments/eval_results/inference_timing_fixed_exact.csv"
+    logging: False

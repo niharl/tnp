@@ -5,6 +5,7 @@ import einops
 import torch
 from check_shapes import check_shapes
 from torch import nn
+import torch.nn.functional as F
 
 
 class BaseMultiHeadAttention(nn.Module, ABC):
@@ -182,3 +183,56 @@ def linear_attention(
     kv = k.transpose(-1, -2) @ v
     out = q @ kv
     return out
+
+@check_shapes(
+    "q: [m, h, nq, dqk]",
+    "k: [m, h, nkv, dqk]",
+    "v: [m, h, nkv, dv]",
+)
+def linear_attention_v2(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    attn_mask: Optional[torch.Tensor] = None,
+    scale: float = 1.0,
+    eps: float = 1e-6,
+):
+    """
+    Computes Linear Attention using the Katharopoulos method (ELU+1).
+    Args:
+        q: [m, h, nq, d]
+        k: [m, h, nkv, d]
+        v: [m, h, nkv, dv]
+        attn_mask: Not supported currently.
+    """
+    # 1. Feature Map (Ensure positivity)
+    Q = F.elu(q) + 1.0
+    K = F.elu(k) + 1.0
+    
+    # Apply scale to Q (mimics standard attention scaling)
+    Q = Q * scale
+
+    # 2. Let's ignore masking for now
+    if attn_mask is not None:
+        raise NotImplementedError("Masking not implemented for linear attention yet.")
+
+    # 3. Compute the Global Context Matrix (The "Cache")
+    # shape: [m, h, d, dv]
+    # This is the O(Nc) step.
+    KV = torch.matmul(K.transpose(-1, -2), v)
+    
+    # 4. Compute the Normaliser (The Denominator)
+    # shape: [m, h, d]
+    # We sum K over the sequence length.
+    Z = K.sum(dim=-2) 
+    
+    # 5. Compute Output (The O(Nt) step)
+    # Numerator: Q @ KV -> [m, h, nq, dv]
+    numerator = torch.matmul(Q, KV)
+    
+    # Denominator: Dot product of Q and Z
+    # Explicit element-wise mul + sum
+    # [m, h, nq, d] * [m, h, 1, d] -> sum(-1) -> [m, h, nq, 1]
+    denominator = torch.sum(Q * Z.unsqueeze(-2), dim=-1, keepdim=True)
+
+    return numerator / (denominator + eps)

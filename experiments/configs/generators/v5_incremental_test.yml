@@ -17,7 +17,7 @@ generators:
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
     priming_frac_range: [0.75, 0.75]
-    samples_per_epoch: 8
+    samples_per_epoch: 80
     batch_size: 8
     deterministic: True
     same_targets: ${params.same_targets}

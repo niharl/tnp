@@ -87,6 +87,7 @@ misc:
   eval_name: eval
   eval_folder: eval
   inc_name: inc_tests
+  inc_folder: inc_tests
   seed: 1
   only_plots: True
   num_plots: 20

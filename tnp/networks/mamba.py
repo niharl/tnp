@@ -109,9 +109,16 @@ class MNPNDMambaEncoder(nn.Module):
         Update context cache with new context xc.
         """
         inf_params = inc_cache["mamba_cache"]
-        for mamba_layer in self.mamba_layers:
-            xc = mamba_layer(xc, inference_params=inf_params)
-        inf_params.seqlen_offset += xc.shape[1]
+        if inf_params.seqlen_offset == 0:
+            for mamba_layer in self.mamba_layers:
+                xc = mamba_layer(xc, inference_params=inf_params)
+            inf_params.seqlen_offset += xc.shape[1]
+        else:
+            for i in range(xc.shape[1]):
+                xc_token = xc[:, i:i+1, :]
+                for mamba_layer in self.mamba_layers:
+                    xc_token = mamba_layer(xc_token, inference_params=inf_params)
+                inf_params.seqlen_offset += 1
 
     @torch.no_grad()
     @check_shapes(
@@ -128,7 +135,26 @@ class MNPNDMambaEncoder(nn.Module):
         for mamba_layer in self.mamba_layers:
             x = mamba_layer(x, inference_params=inf_copy)
         return x
-
+    
+    @torch.no_grad()
+    @check_shapes(
+        "xt: [m, nt, d]", "return: [m, nt, d]"
+    )
+    def query(self, xt: torch.Tensor, inc_cache: dict) -> torch.Tensor:
+        """
+        Query the model with targets xt, using the cached context.
+        Do not update the cache in this step.
+        """
+        inf_params = inc_cache["mamba_cache"]
+        inf_copy = tile_inference_params(inf_params, repeats=1, new_max_batch=inf_params.max_batch_size)
+        xt_out = []
+        for i in range(xt.shape[1]):
+            x_token = xt[:, i:i+1, :]
+            for mamba_layer in self.mamba_layers:
+                x_token = mamba_layer(x_token, inference_params=inf_copy)
+            xt_out.append(x_token)
+            inf_copy.seqlen_offset += 1
+        return torch.cat(xt_out, dim=1)
 
 class TNPMambaEncoder(nn.Module):
     def __init__(
@@ -178,8 +204,8 @@ class TNPMambaEncoder(nn.Module):
         # "xc_cache": a dictionary mapping mamba_layer.layer_idx to the cached context representation
         mamba_inf = create_inference_params_cache(max_seqlen=max_seqlen, max_batch_size=max_batch_size)
         xc_cache = {}
-        for mamba_layer in self.mamba_layers:
-            xc_cache[mamba_layer.layer_idx] = None
+        for i in range(len(self.mamba_layers)):
+            xc_cache[f'mamba_layer_{i}'] = None
         return {"mamba_cache": mamba_inf, "context_cache": xc_cache}
 
     @torch.no_grad()
@@ -192,10 +218,20 @@ class TNPMambaEncoder(nn.Module):
         """
         inf_params = inc_cache["mamba_cache"]
         xc_cache = inc_cache["context_cache"]
-        for mamba_layer in self.mamba_layers:
-            xc = mamba_layer(xc, inference_params=inf_params)
-            update_ctx_cache(xc, xc_cache, mamba_layer.layer_idx)
-        inf_params.seqlen_offset += xc.shape[1]
+        if inf_params.seqlen_offset == 0:
+            for i, mamba_layer in enumerate(self.mamba_layers):
+                layer_name = f'mamba_layer_{i}'
+                xc = mamba_layer(xc, inference_params=inf_params)
+                update_ctx_cache(xc, xc_cache, layer_name)
+            inf_params.seqlen_offset += xc.shape[1]
+        else:
+            for i in range(xc.shape[1]):
+                xc_token = xc[:, i:i+1, :]
+                for i, mamba_layer in enumerate(self.mamba_layers):
+                    layer_name = f'mamba_layer_{i}'
+                    xc_token = mamba_layer(xc_token, inference_params=inf_params)
+                    update_ctx_cache(xc_token, xc_cache, layer_name)
+                inf_params.seqlen_offset += 1
 
     @torch.no_grad()
     @check_shapes(
@@ -207,10 +243,11 @@ class TNPMambaEncoder(nn.Module):
         Do not update the cache in this step.
         """
         xc_cache = inc_cache["context_cache"]
-        for mamba_layer, mhca_layer in zip(self.mamba_layers, self.mhca_layers):
-            if xc_cache[mamba_layer.layer_idx] is None:
-                raise ValueError(f"Context cache for layer {mamba_layer.layer_idx} is empty. Make sure to call update_ctx with the context before querying.")
-            xc = xc_cache[mamba_layer.layer_idx]
+        for i, mhca_layer in enumerate(self.mhca_layers):
+            layer_name = f'mamba_layer_{i}'
+            if xc_cache[layer_name] is None:
+                raise ValueError(f"Context cache for layer {layer_name} is empty. Make sure to call update_ctx with the context before querying.")
+            xc = xc_cache[layer_name]
             if self.ca_dilation:
                 nc = xc.shape[1]
                 start_index = (nc - 1) % self.dilation_factor
@@ -315,9 +352,16 @@ class SequentialMambaEncoder(nn.Module):
         Update context cache with new context xc.
         """
         inf_params = inc_cache["mamba_cache"]
-        for mamba_layer in self.mamba_layers:
-            xc = mamba_layer(xc, inference_params=inf_params)
-        inf_params.seqlen_offset += xc.shape[1]
+        if inf_params.seqlen_offset == 0:
+            for mamba_layer in self.mamba_layers:
+                xc = mamba_layer(xc, inference_params=inf_params)
+            inf_params.seqlen_offset += xc.shape[1]
+        else:
+            for i in range(xc.shape[1]):
+                xc_token = xc[:, i:i+1, :]
+                for mamba_layer in self.mamba_layers:
+                    xc_token = mamba_layer(xc_token, inference_params=inf_params)
+                inf_params.seqlen_offset += 1
 
     @torch.no_grad()
     @check_shapes(

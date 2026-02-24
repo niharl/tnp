@@ -82,7 +82,7 @@ class TNPTransformerEncoder(nn.Module):
     
     @torch.no_grad()
     @check_shapes(
-        "xc: [m, nc, d]"
+        "xc_new: [m, nc, d]"
     )
     def update_ctx(self, xc_new: torch.Tensor, inc_cache: dict):
         """

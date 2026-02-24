@@ -15,7 +15,7 @@ def preprocess_observations(
 
     return yc, yt
 
-@check_shapes("xc: [m, nc, dx]", "yc: [m, nc, dy]")
+@check_shapes("yc: [m, nc, dy]")
 def preprocess_contexts(
     yc: torch.Tensor
  ) -> torch.Tensor:

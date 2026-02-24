@@ -1,0 +1,8 @@
+model_name,max_diff_mean,max_diff_scale,success,run_path,checkpoint
+Standard TNP,1.0728836059570312e-06,5.662441253662109e-07,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/rbeu9bgd,model-rbeu9bgd:v47
+Standard TNP (attempt 2),1.430511474609375e-06,5.662441253662109e-07,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/hs5lj6sd,model-hs5lj6sd:v43
+TNP-L (MHSA & MHCA),5.662441253662109e-07,1.7881393432617188e-07,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/5k40nfqi,model-5k40nfqi:v45
+TNP-L (MHSA only),2.1457672119140625e-06,1.1175870895385742e-06,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/oqe7utsy,model-oqe7utsy:v46
+TNP-M (Mamba encoder),1.6093254089355469e-06,1.9371509552001953e-07,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/947ytfkb,model-947ytfkb:v49
+MNP-D (Sequential Mamba),1.9073486328125e-06,2.086162567138672e-07,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/oln4ivyk,model-oln4ivyk:v37
+MNP-ND (target context concat),2.9802322387695312e-06,8.940696716308594e-07,True,nl442-university-of-cambridge/random-reversal-priming_v5_causal/hmkbcacp,model-hmkbcacp:v48

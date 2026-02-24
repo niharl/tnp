@@ -11,13 +11,13 @@ generators:
     noise_std: 0.1
     min_nc: 64
     max_nc: 64
-    min_nt: 32
-    max_nt: 32
+    min_nt: 10
+    max_nt: 10
     context_range: ${params.context_range}
     target_range: ${params.target_range}
     reversal_range: ${params.reversal_range}
     priming_frac_range: [0.75, 0.75]
-    samples_per_epoch: 80
+    samples_per_epoch: 800
     batch_size: 8
     deterministic: True
     same_targets: ${params.same_targets}
@@ -100,4 +100,4 @@ misc:
   check_val_every_n_epoch: 10
   plot_x_range: [-4.0, 5.0]
   plot_causal: True
-  plot_error_bars: False
+  plot_error_bars: True

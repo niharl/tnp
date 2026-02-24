@@ -1,78 +1,4 @@
 generators:
-  train:
-    _target_: tnp.data.gp.RandomReversalGPGeneratorv2
-    dim: ${params.dim_x}
-    kernel:
-      - ${rbf_kernel}
-      - ${matern12_kernel}
-      - ${matern32_kernel}
-      - ${matern52_kernel}
-      - ${periodic_kernel}
-    noise_std: 0.1
-    min_nc: 32
-    max_nc: 64
-    min_nt: 32
-    max_nt: 64
-    context_range: ${params.context_range}
-    target_range: ${params.target_range}
-    reversal_range: ${params.reversal_range}
-    priming_frac_range: ${params.priming_frac_range}
-    samples_per_epoch: 16_000
-    batch_size: 8
-    same_targets: ${params.same_targets}
-    shared_noise:  ${params.shared_noise}
-    targets_only_outside_context: ${params.targets_only_outside_context}
-    context_in_targets: ${params.context_in_targets}
-  val:
-    _target_: tnp.data.gp.RandomReversalGPGeneratorv2
-    dim: ${params.dim_x}
-    kernel:
-      - ${rbf_kernel}
-      - ${matern12_kernel}
-      - ${matern32_kernel}
-      - ${matern52_kernel}
-      - ${periodic_kernel}
-    noise_std: 0.1
-    min_nc: 32
-    max_nc: 64
-    min_nt: 32
-    max_nt: 64
-    context_range: ${params.context_range}
-    target_range: ${params.target_range}
-    reversal_range: ${params.reversal_range}
-    priming_frac_range: ${params.priming_frac_range}
-    samples_per_epoch: 4096
-    batch_size: 8
-    deterministic: True
-    same_targets: ${params.same_targets}
-    shared_noise: ${params.shared_noise}
-    targets_only_outside_context: ${params.targets_only_outside_context}
-    context_in_targets: ${params.context_in_targets}
-  test:
-    _target_: tnp.data.gp.RandomReversalGPGeneratorv2
-    dim: ${params.dim_x}
-    kernel:
-      - ${rbf_kernel}
-      - ${matern12_kernel}
-      - ${matern32_kernel}
-      - ${matern52_kernel}
-      - ${periodic_kernel}
-    noise_std: 0.1
-    min_nc: 32
-    max_nc: 64
-    min_nt: 32
-    max_nt: 64
-    context_range: ${params.context_range}
-    target_range: ${params.target_range}
-    reversal_range: ${params.reversal_range}
-    priming_frac_range: [0, 1.0]
-    samples_per_epoch: 80_000
-    batch_size: 8
-    deterministic: True
-    same_targets: ${params.same_targets}
-    shared_noise: ${params.shared_noise}
-    targets_only_outside_context: ${params.targets_only_outside_context}
-    context_in_targets: ${params.context_in_targets}
   inc_test:
     _target_: tnp.data.gp.RandomReversalGPGeneratorv2
     dim: ${params.dim_x}
@@ -160,6 +86,7 @@ misc:
   project: random-reversal-priming_v5_causal
   eval_name: eval
   eval_folder: eval
+  inc_name: inc_tests
   seed: 1
   only_plots: True
   num_plots: 20

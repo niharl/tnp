@@ -131,22 +131,6 @@ class MNPNDMambaEncoder(nn.Module):
         """
         inf_params = inc_cache["mamba_cache"]
         inf_copy = tile_inference_params(inf_params, repeats=1, new_max_batch=inf_params.max_batch_size)
-        x = xt
-        for mamba_layer in self.mamba_layers:
-            x = mamba_layer(x, inference_params=inf_copy)
-        return x
-    
-    @torch.no_grad()
-    @check_shapes(
-        "xt: [m, nt, d]", "return: [m, nt, d]"
-    )
-    def query(self, xt: torch.Tensor, inc_cache: dict) -> torch.Tensor:
-        """
-        Query the model with targets xt, using the cached context.
-        Do not update the cache in this step.
-        """
-        inf_params = inc_cache["mamba_cache"]
-        inf_copy = tile_inference_params(inf_params, repeats=1, new_max_batch=inf_params.max_batch_size)
         xt_out = []
         for i in range(xt.shape[1]):
             x_token = xt[:, i:i+1, :]

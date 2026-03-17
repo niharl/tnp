@@ -63,3 +63,26 @@ class ARConditionalNeuralProcess(BaseNeuralProcess):
 
         # Test in normal mode.
         return self.likelihood(self.decoder(self.encoder(xc, yc, xt), xt))
+
+
+
+class CausalNeuralProcess(BaseNeuralProcess):
+    @check_shapes(
+        "xc: [m, nc, dx]",
+        "yc: [m, nc, dy]",
+        "xt: [m, nt, dx]",
+        "yt: [m, nt_, dy]",
+    )
+    def forward(
+        self,
+        xc: torch.Tensor,
+        yc: torch.Tensor,
+        xt: torch.Tensor,
+        yt: torch.Tensor,
+    ) -> torch.distributions.Distribution:
+        #if self.training:
+        # Train in AR mode.
+        return self.likelihood(self.decoder(self.encoder(xc, yc, xt, yt)))
+
+        # Test in normal mode.
+        #return self.likelihood(self.decoder(self.encoder(xc, yc, xt), xt))

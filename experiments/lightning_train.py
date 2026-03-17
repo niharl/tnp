@@ -3,7 +3,7 @@ import os
 import lightning.pytorch as pl
 import torch
 from omegaconf import OmegaConf
-from plot import plot
+from plot import plot, plot_discrete
 
 import wandb
 from tnp.utils.data_loading import adjust_num_batches
@@ -54,15 +54,28 @@ def main():
     )
 
     def plot_fn(model, batches, name):
-        plot(
-            model=model,
-            batches=batches,
-            num_fig=min(5, len(batches)),
-            name=name,
-            pred_fn=experiment.misc.pred_fn,
-            plot_gt=experiment.misc.plot_gt,
-            plot_reversal=experiment.misc.plot_reversal,
-        )
+        # Look for plot_type in config. If it's missing, default to "standard"
+        plot_type = experiment.misc.get("plot_type", "standard")
+
+        if plot_type == "discrete":
+            plot_discrete(
+                model=model,
+                batches=batches,
+                num_fig=min(5, len(batches)),
+                name=name,
+                pred_fn=experiment.misc.pred_fn,
+            )
+        else:
+            # This runs for "standard" OR if the key is missing entirely
+            plot(
+                model=model,
+                batches=batches,
+                num_fig=min(5, len(batches)),
+                name=name,
+                pred_fn=experiment.misc.pred_fn,
+                plot_gt=experiment.misc.plot_gt,
+                plot_reversal=experiment.misc.plot_reversal,
+            )
 
     if experiment.misc.resume_from_checkpoint is not None:
         api = wandb.Api()

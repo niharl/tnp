@@ -292,3 +292,76 @@ def plot_gps(
             plt.show()
 
         plt.close()
+
+
+def plot_discrete(
+    model, 
+    batches, 
+    num_fig=5, 
+    name="plot", 
+    pred_fn=None,
+    outfolder="fig",
+    show_nll=False,
+    separate_targets=False,
+    **kwargs
+):
+    model.eval()
+    
+    # Iterate through batches to create separate figures for each
+    for i in range(num_fig):
+        batch = batches[i]
+        
+        # 1. Get Prediction from the model
+        with torch.no_grad():
+            dist = pred_fn(model, batch)
+        
+        # 2. Extract and Flatten
+        # Note: We take index 0 assuming B=1 for validation/plotting
+        x_all = torch.cat([batch.xc, batch.xt], dim=1)[0, :, 0].cpu().numpy()
+        y_all = torch.cat([batch.yc, batch.yt], dim=1)[0, :, 0].cpu().numpy()
+        
+        mu = dist.mean[0, :, 0].cpu().numpy()
+        std = dist.stddev[0, :, 0].cpu().numpy()
+
+        # Create separate figure for this batch (matching 'plot' logic)
+        fig = plt.figure(figsize=(10, 6))
+        
+        # --- PLOTTING ---
+        # A. Ground Truth
+        if separate_targets:
+            plt.scatter(batch.xc[0, :, 0].cpu(), batch.yc[0, :, 0].cpu(), color='black', label='Context', s=25, zorder=3)
+            plt.scatter(batch.xt[0, :, 0].cpu(), batch.yt[0, :, 0].cpu(), color='gray', label='Target', s=25, zorder=3)
+        else:
+            plt.scatter(x_all, y_all, color='black', label='Ground Truth', s=25, zorder=3)
+        
+        # B. Predicted Mean
+        plt.plot(x_all[-mu.shape[0]:], mu, color='blue', label='Predicted Mean', linewidth=2, zorder=2)
+        
+        # C. Uncertainty
+        plt.plot(x_all[-mu.shape[0]:], mu + std, color='red', linestyle=':', label='Mean ± Std', linewidth=1.5, alpha=0.9)
+        plt.plot(x_all[-mu.shape[0]:], mu - std, color='red', linestyle=':', linewidth=1.5, alpha=0.9)
+
+        gen0 = batch.generator_name[0] if hasattr(batch, "generator_name") else "unknown"
+        title_str = f"Generator: {gen0}"
+        if show_nll:
+            nll = -dist.log_prob(batch.yt).sum() / batch.yt.shape[1]
+            title_str += f"  NLL={nll:.3f}"
+
+        plt.title(title_str)
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.legend(loc='upper left')
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+
+        # --- LOGGING ---
+        fname = f"{outfolder}/{name}/{i:03d}"
+        if wandb.run is not None:
+            # Logs separate images to WandB Media tab
+            wandb.log({fname: wandb.Image(fig)})
+        else:
+            # Fallback for local testing
+            os.makedirs(os.path.dirname(fname), exist_ok=True)
+            plt.savefig(f"{fname}.png")
+
+        plt.close(fig)
